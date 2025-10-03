@@ -1,0 +1,46 @@
+syntax = "proto3";
+package alarm;
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// if implementing recurring alarms, need timezone prolly
+message Alarm {
+    int32 id = 1;
+    string title = 2;
+    google.protobuf.Timestamp time = 3;
+}
+message AlarmId{
+    int32 id = 1;
+}
+
+// Storage service/node
+// interacts with memory where alarms are stored
+service Storage {
+  rpc AddAlarm(Alarm) returns (google.protobuf.Empty);          // saves alarm to storage
+  rpc GetAlarm(AlarmId) returns (Alarm);                        // returns alarm
+  rpc ListAlarms(google.protobuf.Empty) returns (stream Alarm); // lists all alarms
+  rpc DeleteAlarm(AlarmId) returns (google.protobuf.Empty);     // deletes alarm with id
+}
+
+// Scheduler service/node
+// handles alarm triggers and requests
+service Scheduler {
+    rpc ScheduleAlarm(Alarm) returns (google.protobuf.Empty);   // calls Storage node to SaveAlarm
+    rpc FwdDueAlarm(google.protobuf.Empty) returns (Alarm);     // sends triggered Alarm to Notification
+}
+
+// Notification service/node
+service Notification {
+    rpc SendNotification(Alarm) returns (google.protobuf.Empty);    // prints notif to terminal
+}
+
+
+// aside: have the following versions
+// Name: grpcio Version: 1.74.0
+// Name: grpcio-tools Version: 1.74.0
+// Name: protobuf Version: 6.32.0
+// checked using pip show grpcio grpcio-tools protobuf
+
+
+// aside 2: generated proto files using in arch_2
+// python -m grpc_tools.protoc  -I.   --python_out=./node2  --grpc_python_out=./node2   alarm.proto
