@@ -1,15 +1,35 @@
 services:
-  node1:
-    build: ./node1
-    container_name: node1
+  api_gateway:
+    build: ./api_gateway
+    container_name: api_gateway
+    ports:
+      - 5000:5000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 5s
+      retries: 5
   
-  node2:
-    build: ./node2
-    container_name: node2
+  alarm_storage:
+    build: ./alarm_storage
+    container_name: alarm_storage
+    volumes:
+      - ./data/db.sqlite:/app/db.sqlite
+    ports:
+      - 5001:5001
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/"]
+      interval: 5s
+      retries: 5
 
-  node3:
-    build: ./node3
-    container_name: node3
+  scheduler:
+    build: ./scheduler
+    container_name: scheduler
+    ports:
+      - 5002:5002
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/"]
+      interval: 5s
+      retries: 5
 
   node4:
     build: ./node4
@@ -25,8 +45,7 @@ services:
     ports:
       - 8080:8080
     depends_on:
-      - node1
-      - node2
-      - node3
-      - node4
-      - node5
+      api_gateway:
+        condition: service_healthy
+      alarm_storage:
+        condition: service_healthy
