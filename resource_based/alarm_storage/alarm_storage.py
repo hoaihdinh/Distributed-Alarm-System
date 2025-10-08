@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from typing import List
 from datetime import datetime
@@ -17,30 +17,18 @@ class Alarm(BaseModel):
     message: str
     time: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
-
-class CreatedAlarm(Alarm):
-    id: int
-
 @app.get("/")
 def root():
     return {"message": "Alarm Storage Service is running"}
 
-@app.post("/alarms/{user_id}")
-def create_alarm(user_id: int, alarm: Alarm):
+@app.post("/alarms")
+def create_alarm(alarm: Alarm):
     with SessionLocal() as db:
-        new_alarm = AlarmDB(user_id=user_id,**alarm.dict())
+        new_alarm = AlarmDB(**alarm.dict())
         db.add(new_alarm)
         db.commit()
         db.refresh(new_alarm)
-        return CreatedAlarm.from_attributes(new_alarm)
-
-@app.get("/alarms/user/{user_id}", response_model=List[Alarm])
-def get_all_alarms_for_user(user_id: int):
-    with SessionLocal() as db:
-        return db.query(AlarmDB).filter(AlarmDB.user_id == user_id).all()
+        return new_alarm
 
 @app.get("/alarms/{alarm_id}")
 def get_alarm(alarm_id: int):
@@ -48,7 +36,15 @@ def get_alarm(alarm_id: int):
         alarm = db.query(AlarmDB).filter(AlarmDB.id == alarm_id).first()
         if not alarm:
             raise HTTPException(status_code=404, detail="Alarm not found")
-        return Alarm.from_attributes(alarm)
+        return alarm
+    
+@app.get("/alarms/user/{user_id}")
+def get_user_alarms(user_id: int):
+    with SessionLocal() as db:
+        alarms = db.query(AlarmDB).filter(AlarmDB.user_id == user_id).all()
+        if not alarms:
+            raise HTTPException(status_code=404, detail=f"No alarms found for user {user_id}")
+        return alarms
 
 @app.put("/alarms/{alarm_id}")
 def update_alarm(alarm_id: int, updated: Alarm):
@@ -60,7 +56,7 @@ def update_alarm(alarm_id: int, updated: Alarm):
             setattr(alarm, key, value)
         db.commit()
         db.refresh(alarm)
-        return Alarm.from_attributes(alarm)
+        return alarm
 
 @app.delete("/alarms/{alarm_id}")
 def delete_alarm(alarm_id: int):

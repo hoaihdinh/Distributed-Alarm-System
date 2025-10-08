@@ -5,25 +5,20 @@ BASE_URL = "http://api_gateway:5000/alarms"
 
 # ---- 1. Add a new alarm ----
 new_alarm = {
+    "user_id": 1,
     "message": "Wake up",
     "time": "2025-10-06T08:00:00"
 }
-user_id = 1
 
-response = requests.post(f"{BASE_URL}/{user_id}", json=new_alarm)
-
-try:
-    data = response.json()
-except ValueError:  # requests.JSONDecodeError is subclass of ValueError
-    data = {"raw_text": response.text or "No content"}
-
-print("Create Alarm:", data)
+response = requests.post(f"{BASE_URL}", json=new_alarm)
+print("Create Alarm:", response.json())
 
 # # ---- 2. List all alarms ----
 # response = requests.get(BASE_URL)
 # print("All Alarms:", response.json())
 
 # ---- 3. Get alarms for a specific user ----
+user_id = 1
 response = requests.get(f"{BASE_URL}/user/{user_id}")
 print(f"Alarms for user {user_id}:", response.json())
 
@@ -41,6 +36,19 @@ updated_alarm = {
 response = requests.put(f"{BASE_URL}/{alarm_id}", json=updated_alarm)
 print(f"Updated Alarm {alarm_id}:", response.json())
 
+response = requests.get(f"{BASE_URL}/{alarm_id}")
+print("GET after UPDATE Alarm:", response.json())
+
+
 # ---- 6. Delete an alarm ----
 response = requests.delete(f"{BASE_URL}/{alarm_id}")
 print(f"Deleted Alarm {alarm_id}:", response.json())
+
+
+response = requests.get(f"{BASE_URL}/{alarm_id}")
+print("GET after DELETE Alarm:", response.json())
+
+user_id = 1
+response = requests.get(f"{BASE_URL}/user/{user_id}")
+print(f"Alarms for user {user_id}:", response.json())
+
