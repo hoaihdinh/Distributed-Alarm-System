@@ -9,7 +9,7 @@ def root():
 
 @app.api_route("/alarms/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
 async def alarms_proxy(request: Request, path: str):
-    target_url = f"http://alarm_storage:5001/alarms/{path}" if path != "" else "http://alarm_storage:5001/alarms"
+    target_url = f"http://alarm_storage:5001/alarms/{path}"
     async with httpx.AsyncClient() as client:
         response = await client.request(
             request.method,

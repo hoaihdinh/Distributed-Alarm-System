@@ -1,25 +1,17 @@
 from fastapi import FastAPI, HTTPException, Request
-from pydantic import BaseModel
-from typing import List
-from datetime import datetime
-from database_setup import AlarmDB, SessionLocal, init_db
+from resource_based.alarm_database.schemas import Alarm, UpdateAlarm
+from resource_based.alarm_database.database import AlarmDB, SessionLocal, init_db
 
-app = FastAPI(title="Alarm Storage Service")
+app = FastAPI(title="Alarm Database")
 
-# Create tables on startup
+# Create tables
 @app.on_event("startup")
 def startup_event():
     init_db()
 
-# Pydantic model
-class Alarm(BaseModel):
-    user_id: int
-    message: str
-    time: datetime
-
 @app.get("/")
 def root():
-    return {"message": "Alarm Storage Service is running"}
+    return {"message": "Alarm Database is running"}
 
 @app.post("/alarms")
 def create_alarm(alarm: Alarm):
@@ -29,6 +21,11 @@ def create_alarm(alarm: Alarm):
         db.commit()
         db.refresh(new_alarm)
         return new_alarm
+
+@app.get("/alarms/{status}")
+def get_alarms_with_status(status: str):
+    with SessionLocal() as db:
+        return db.query(AlarmDB).filter(AlarmDB.status == status).all()
 
 @app.get("/alarms/{alarm_id}")
 def get_alarm(alarm_id: int):
@@ -47,12 +44,12 @@ def get_user_alarms(user_id: int):
         return alarms
 
 @app.put("/alarms/{alarm_id}")
-def update_alarm(alarm_id: int, updated: Alarm):
+def update_alarm(alarm_id: int, updated_fields: UpdateAlarm):
     with SessionLocal() as db:
         alarm = db.query(AlarmDB).filter(AlarmDB.id == alarm_id).first()
         if not alarm:
             raise HTTPException(status_code=404, detail="Alarm not found")
-        for key, value in updated.dict().items():
+        for key, value in updated_fields.dict(exclude_unset=True).items():
             setattr(alarm, key, value)
         db.commit()
         db.refresh(alarm)
