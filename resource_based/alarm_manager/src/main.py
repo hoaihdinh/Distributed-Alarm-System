@@ -1,8 +1,10 @@
 from fastapi import FastAPI, HTTPException, Request
-from resource_based.alarm_database.schemas import Alarm, UpdateAlarm
-from resource_based.alarm_database.database import AlarmDB, SessionLocal, init_db
+from schemas import Alarm, UpdateAlarm
+from models import AlarmDB
+from database import SessionLocal, init_db
+from event_scheduler import create_event, update_event, delete_event
 
-app = FastAPI(title="Alarm Database")
+app = FastAPI(title="Alarm Manager")
 
 # Create tables
 @app.on_event("startup")
@@ -11,7 +13,7 @@ def startup_event():
 
 @app.get("/")
 def root():
-    return {"message": "Alarm Database is running"}
+    return {"message": "Alarm Manager is running"}
 
 @app.post("/alarms")
 def create_alarm(alarm: Alarm):
@@ -20,12 +22,10 @@ def create_alarm(alarm: Alarm):
         db.add(new_alarm)
         db.commit()
         db.refresh(new_alarm)
-        return new_alarm
 
-@app.get("/alarms/{status}")
-def get_alarms_with_status(status: str):
-    with SessionLocal() as db:
-        return db.query(AlarmDB).filter(AlarmDB.status == status).all()
+        create_event(alarm_id=new_alarm.id, time=new_alarm.time)
+
+        return new_alarm
 
 @app.get("/alarms/{alarm_id}")
 def get_alarm(alarm_id: int):
@@ -35,13 +35,17 @@ def get_alarm(alarm_id: int):
             raise HTTPException(status_code=404, detail="Alarm not found")
         return alarm
     
-@app.get("/alarms/user/{user_id}")
-def get_user_alarms(user_id: int):
+@app.get("/alarms")
+def get_user_alarms(user_id: int | None = None, status: str | None = None):
     with SessionLocal() as db:
-        alarms = db.query(AlarmDB).filter(AlarmDB.user_id == user_id).all()
-        if not alarms:
-            raise HTTPException(status_code=404, detail=f"No alarms found for user {user_id}")
-        return alarms
+        query = db.query(AlarmDB)
+
+        if user_id:
+            query = query.filter(AlarmDB.user_id == user_id)
+        if status:
+            query = query.filter(AlarmDB.status == status)
+        
+        return query.all()
 
 @app.put("/alarms/{alarm_id}")
 def update_alarm(alarm_id: int, updated_fields: UpdateAlarm):
@@ -53,6 +57,10 @@ def update_alarm(alarm_id: int, updated_fields: UpdateAlarm):
             setattr(alarm, key, value)
         db.commit()
         db.refresh(alarm)
+
+        if updated_fields.time:
+            update_event(alarm_id=alarm.id, time=alarm.time)
+
         return alarm
 
 @app.delete("/alarms/{alarm_id}")
@@ -63,4 +71,5 @@ def delete_alarm(alarm_id: int):
             raise HTTPException(status_code=404, detail="Alarm not found")
         db.delete(alarm)
         db.commit()
+        delete_event(alarm_id)
         return {"deleted_id": alarm_id}

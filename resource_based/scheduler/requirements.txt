@@ -1,4 +1,5 @@
 fastapi
 uvicorn[standard]
-sqlalchemy
+apscheduler
+aiohttp
 pydantic

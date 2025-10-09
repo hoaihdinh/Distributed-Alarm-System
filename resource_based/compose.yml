@@ -9,19 +9,28 @@ services:
       interval: 5s
       retries: 5
   
-  alarm_database:
-    build: ./alarm_database
-    container_name: alarm_database
+  alarm_manager:
+    build: ./alarm_manager
+    container_name: alarm_manager
     ports:
       - 5001:5001
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/"]
+      interval: 5s
+      retries: 5
+  scheduler:
+    build: ./scheduler
+    container_name: scheduler
+    ports:
+      - 5002:5002
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/"]
+      interval: 5s
+      retries: 5
 
-  alarm_processor:
-    build: ./alarm_processor
-    container_name: alarm_processor
-
-  notifier:
-    build: ./notifier
-    container_name: notifier
+  node4:
+    build: ./node4
+    container_name: node4
 
   node5:
     build: ./node5
@@ -34,5 +43,9 @@ services:
       - 8080:8080
     depends_on:
       api_gateway:
+        condition: service_healthy
+      alarm_manager:
+        condition: service_healthy
+      scheduler:
         condition: service_healthy
 
