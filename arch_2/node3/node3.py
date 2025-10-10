@@ -8,16 +8,40 @@
 import grpc
 from google.protobuf import empty_pb2
 
-import alarm_pb2
-import alarm_pb2_grpc
+import alarm_pb2, alarm_pb2_grpc
+import requests
+import threading
+import time
 
+API_GATEWAY_URL = "http://node4:8080/notify"
 
+# continuously checks for due alarms from scheduler node
 def run_notification_client():
-    scheduler_channel = grpc.insecure_channel('localhost:50052')
+    time.sleep(5)   # ensures scheduler is alive before connecting
+    scheduler_channel = grpc.insecure_channel('node2:50052')
     scheduler_stub = alarm_pb2_grpc.SchedulerStub(scheduler_channel)
     while True:
-        alarm = scheduler_stub.FwdDueAlarm(empty_pb2.Empty())  # blocks until alarm is due
-        print(f"Alarm triggered: ID={alarm.id}, Title={alarm.title}")
+        try:
+            alarm = scheduler_stub.FwdDueAlarm(empty_pb2.Empty())  # blocks until alarm is due
+            postAlarm(alarm)
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.NOT_FOUND:
+                time.sleep(1)        # no alarms 
+                continue
+        time.sleep(0.5)
+
+# fwds due alarm to the API
+def postAlarm(alarm):
+    data = {"id": alarm.id, "user": alarm.user, "title": alarm.title, "time": alarm.time.seconds}
+    try:
+        requests.post(API_GATEWAY_URL, json=data)
+    except Exception as e:
+        print("Notification failed to send to API:", e)
+
+
 
 if __name__ == "__main__":
-    run_notification_client()
+    print("starting notification client")
+    t = threading.Thread(target=run_notification_client, daemon=True)
+    t.start()
+    t.join()

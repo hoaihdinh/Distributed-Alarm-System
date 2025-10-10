@@ -4,5 +4,8 @@ FROM python:3.12
 
 WORKDIR /app
 COPY node1.py .
+COPY alarm_pb2.py alarm_pb2_grpc.py .
 
-CMD ["python", "node1.py"]
+RUN pip install --no-cache-dir grpcio grpcio-tools protobuf
+
+CMD ["python", "-u", "node1.py"]

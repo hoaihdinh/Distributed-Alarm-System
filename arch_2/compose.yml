@@ -1,23 +1,56 @@
+
 services:
-  node1:
+  node1: # Storage
     build: ./node1
     container_name: node1
-  
-  node2:
+    command: python node1.py
+    ports:
+      - "50051:50051"
+    volumes:
+      - ./node1/saved_alarm.json:/app/saved_alarm.json
+
+  node2: # Scheduler
     build: ./node2
     container_name: node2
+    command: python node2.py
+    volumes:
+      - ./node2/scheduler_log.json:/app/scheduler_log.json
+    depends_on:
+      - node1
+      - node5
+    ports:
+      - "50052:50052"
 
-  node3:
+  node3: # Notification
     build: ./node3
     container_name: node3
+    command: python node3.py
+    volumes:
+      - ./node3/notification_log.json:/app/notification_log.json
+    depends_on:
+      - node2
+      - node1
 
-  node4:
+  node4: # API Gateway / Web Dashboard
     build: ./node4
     container_name: node4
+    command: python -m uvicorn api_gateway:app --host 0.0.0.0 --port 8080
+    depends_on:
+      - node1
+      - node2
+      - node3
+      - node5
+    ports:
+      - "8080:8080"
 
   node5:
     build: ./node5
     container_name: node5
+    command: python node5.py
+    ports:
+      - "50053:50053"
+    volumes:
+      - ./node5/saved_users.json:/app/saved_users.json
 
   user:
     build: ../user

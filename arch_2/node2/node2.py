@@ -11,34 +11,40 @@ import asyncio
 import alarm_pb2
 import alarm_pb2_grpc
 
+#delete later
+import json
+import os
+from datetime import datetime
+
+
+
 class SchedulerServicer(alarm_pb2_grpc.SchedulerServicer):
-    def __init__(self, storage_stub=None):
-        self.storage_channel = grpc.aio.insecure_channel("localhost:50051")  
+    def __init__(self):
+        self.storage_channel = grpc.aio.insecure_channel("node1:50051")  
         self.storage_stub = alarm_pb2_grpc.StorageStub(self.storage_channel)
+        self.account_channel = grpc.insecure_channel("node5:50053")
+        self.account_stub = alarm_pb2_grpc.AccountStub(self.account_channel)
 
-
+    # fwds request for new alarm
     async def ScheduleAlarm(self, request, context):
         await self.storage_stub.AddAlarm(request)
-        print(f"Scheduled alarm {request.id} for {request.time}")
         return empty_pb2.Empty()
 
     # sends due alarm to the notification service
     async def FwdDueAlarm(self, request, context):
-        while True:
-            response = self.storage_stub.ListAlarms(empty_pb2.Empty())
-            async for alarm in response:
-                now = int(time.time())
-                if alarm.time.seconds <= now:
-                    # deletes due alarm, later implement recurring logic
-                    self.storage_stub.DeleteAlarm(alarm_pb2.AlarmId(id=alarm.id)) 
-                    print(f"Alarm {alarm.id} is due")
-                    return alarm
+        now = int(time.time())
+        async for alarm in self.storage_stub.ListAlarms(empty_pb2.Empty()):
+            if alarm.time.seconds <= now:
+                self.storage_stub.DeleteAlarm(alarm_pb2.AlarmId(id=alarm.id))
+                return alarm  
+        # No alarms due
+        context.abort(grpc.StatusCode.NOT_FOUND, "No alarms due")
                 
 
 async def serve():
     server = grpc.aio.server()
     alarm_pb2_grpc.add_SchedulerServicer_to_server(SchedulerServicer(), server)
-    server.add_insecure_port(f"[::]:50052")
+    server.add_insecure_port("[::]:50052")
     await server.start()
     print(f"Scheduler service listening on port 50052")
     await server.wait_for_termination()

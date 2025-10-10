@@ -3,14 +3,27 @@ package alarm;
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
-// if implementing recurring alarms, need timezone prolly
+
 message Alarm {
     int32 id = 1;
-    string title = 2;
-    google.protobuf.Timestamp time = 3;
+    string user = 2;
+    string title = 3;
+    google.protobuf.Timestamp time = 4;
 }
 message AlarmId{
     int32 id = 1;
+}
+
+message User{
+    string username = 1;
+    string password = 2;
+}
+message Status{
+    int32 success = 1;
+    string token = 2;
+}
+message Username {
+    string username = 1;
 }
 
 // Storage service/node
@@ -34,6 +47,12 @@ service Notification {
     rpc SendNotification(Alarm) returns (google.protobuf.Empty);    // prints notif to terminal
 }
 
+// Account Management service/node
+service Account {
+    rpc AddUser(User) returns (Status);         // adds a user to saved_users file
+    rpc VerifyUser(User) returns (Status);      // checks saved_users file for user
+    rpc GetUser(google.protobuf.Empty) returns (Username);  // returns current user
+}
 
 // aside: have the following versions
 // Name: grpcio Version: 1.74.0

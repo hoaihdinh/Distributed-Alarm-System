@@ -358,3 +358,243 @@ class Scheduler(object):
             timeout,
             metadata,
             _registered_method=True)
+
+
+class NotificationStub(object):
+    """Notification service/node
+    """
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.SendNotification = channel.unary_unary(
+                '/alarm.Notification/SendNotification',
+                request_serializer=alarm__pb2.Alarm.SerializeToString,
+                response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                _registered_method=True)
+
+
+class NotificationServicer(object):
+    """Notification service/node
+    """
+
+    def SendNotification(self, request, context):
+        """prints notif to terminal
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_NotificationServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'SendNotification': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendNotification,
+                    request_deserializer=alarm__pb2.Alarm.FromString,
+                    response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'alarm.Notification', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('alarm.Notification', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class Notification(object):
+    """Notification service/node
+    """
+
+    @staticmethod
+    def SendNotification(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/alarm.Notification/SendNotification',
+            alarm__pb2.Alarm.SerializeToString,
+            google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class AccountStub(object):
+    """Account Management service/node
+    """
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.AddUser = channel.unary_unary(
+                '/alarm.Account/AddUser',
+                request_serializer=alarm__pb2.User.SerializeToString,
+                response_deserializer=alarm__pb2.Status.FromString,
+                _registered_method=True)
+        self.VerifyUser = channel.unary_unary(
+                '/alarm.Account/VerifyUser',
+                request_serializer=alarm__pb2.User.SerializeToString,
+                response_deserializer=alarm__pb2.Status.FromString,
+                _registered_method=True)
+        self.GetUser = channel.unary_unary(
+                '/alarm.Account/GetUser',
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                response_deserializer=alarm__pb2.Username.FromString,
+                _registered_method=True)
+
+
+class AccountServicer(object):
+    """Account Management service/node
+    """
+
+    def AddUser(self, request, context):
+        """adds a user to saved_users file
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def VerifyUser(self, request, context):
+        """checks saved_users file for user
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetUser(self, request, context):
+        """returns current user
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_AccountServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'AddUser': grpc.unary_unary_rpc_method_handler(
+                    servicer.AddUser,
+                    request_deserializer=alarm__pb2.User.FromString,
+                    response_serializer=alarm__pb2.Status.SerializeToString,
+            ),
+            'VerifyUser': grpc.unary_unary_rpc_method_handler(
+                    servicer.VerifyUser,
+                    request_deserializer=alarm__pb2.User.FromString,
+                    response_serializer=alarm__pb2.Status.SerializeToString,
+            ),
+            'GetUser': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetUser,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    response_serializer=alarm__pb2.Username.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'alarm.Account', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('alarm.Account', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class Account(object):
+    """Account Management service/node
+    """
+
+    @staticmethod
+    def AddUser(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/alarm.Account/AddUser',
+            alarm__pb2.User.SerializeToString,
+            alarm__pb2.Status.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def VerifyUser(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/alarm.Account/VerifyUser',
+            alarm__pb2.User.SerializeToString,
+            alarm__pb2.Status.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetUser(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/alarm.Account/GetUser',
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            alarm__pb2.Username.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
