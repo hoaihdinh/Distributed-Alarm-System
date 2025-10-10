@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query
+from sqlalchemy import asc
 from pydantic_models import Alarm, UpdateAlarm
 from database_models import AlarmDB
 from database import SessionLocal, init_db
@@ -24,7 +25,7 @@ def get_all_alarms(user_id: int | None = None, status: str | None = None):
         if status:
             query = query.filter_by(status=status)
         
-        return query.all()
+        return query.order_by(asc(AlarmDB.time)).all()
 
 @app.get("/alarms/{alarm_id}")
 def get_alarm(alarm_id: int):
@@ -41,7 +42,7 @@ def create_alarm(alarm: Alarm):
         db.add(new_alarm)
         db.commit()
         db.refresh(new_alarm)
-        print(f"[Alarm Manager] Added alarm: id={new_alarm.id}, time={new_alarm.time}, message={new_alarm.message}")
+        print(f"[Alarm Manager] Added alarm: id={new_alarm.id}, time={new_alarm.time}, message={new_alarm.message}, status={new_alarm.status}")
         create_event(alarm_id=new_alarm.id, time=new_alarm.time)
 
         return new_alarm
@@ -60,7 +61,7 @@ def update_alarm(alarm_id: int, updated_fields: UpdateAlarm):
         if updated_fields.time:
             update_event(alarm_id=alarm.id, time=alarm.time)
 
-        print(f"[Alarm Manager] Added alarm: id={alarm.id}, time={alarm.time}, message={alarm.message}")
+        print(f"[Alarm Manager] Updated alarm alarm: id={alarm.id}, time={alarm.time}, message={alarm.message}, status={alarm.status}")
         return alarm
 
 @app.delete("/alarms")
@@ -85,6 +86,6 @@ def delete_alarm(alarm_id: int):
             raise HTTPException(status_code=404, detail="Alarm not found")
         db.delete(alarm)
         db.commit()
-        print(f"[Alarm Manager] Added alarm: id={alarm.id}, time={alarm.time}, message={alarm.message}")
+        print(f"[Alarm Manager] Deleted alarm: id={alarm.id}, time={alarm.time}, message={alarm.message}, status={alarm.status}")
         delete_event(alarm_id)
         return {"deleted_id": alarm_id}

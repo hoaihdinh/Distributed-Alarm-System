@@ -5,6 +5,9 @@ services:
     container_name: api_gateway
     ports:
       - 5000:5000
+    networks:
+      - dist_system_nodes
+      - frontend
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/"]
       interval: 5s
@@ -25,6 +28,8 @@ services:
     container_name: alarm_manager
     ports:
       - 5001:5001
+    networks:
+      - dist_system_nodes
     volumes:
       - ./data/alarm_manager:/app/data
     environment:
@@ -40,6 +45,8 @@ services:
     container_name: scheduler
     ports:
       - 5002:5002
+    networks:
+      - dist_system_nodes
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5002/"]
       interval: 5s
@@ -52,10 +59,12 @@ services:
 
   user_manager:
     build: ./dist_system_nodes/user_manager
-    image: user_manger:latest
+    image: user_manager:latest
     container_name: user_manager
     ports:
       - 5003:5003
+    networks:
+      - dist_system_nodes
     volumes:
       - ./data/user_manager:/app/data
     environment:
@@ -71,6 +80,8 @@ services:
     container_name: notification_manager
     ports:
       - 5004:5004
+    networks:
+      - dist_system_nodes
     volumes:
       - ./data/notification_manager:/app/data
     healthcheck:
@@ -78,15 +89,18 @@ services:
       interval: 5s
       retries: 5
 
-
-
   example_frontend_app:
     build: ./example_frontend_app
     image: example_frontend_app:latest
     container_name: example_frontend_app
     ports:
       - 8080:8080
+    networks:
+      - frontend
     depends_on:
       api_gateway:
         condition: service_healthy
 
+networks:
+  dist_system_nodes:
+  frontend:
