@@ -42,7 +42,7 @@ def create_alarm(alarm: Alarm):
         db.add(new_alarm)
         db.commit()
         db.refresh(new_alarm)
-
+        print(f"[Alarm Manager] Added alarm: id={new_alarm.id}, time={new_alarm.time}, message={new_alarm.message}")
         create_event(alarm_id=new_alarm.id, time=new_alarm.time)
 
         return new_alarm
@@ -61,6 +61,7 @@ def update_alarm(alarm_id: int, updated_fields: UpdateAlarm):
         if updated_fields.time:
             update_event(alarm_id=alarm.id, time=alarm.time)
 
+        print(f"[Alarm Manager] Added alarm: id={alarm.id}, time={alarm.time}, message={alarm.message}")
         return alarm
 
 @app.delete("/alarms")
@@ -74,7 +75,7 @@ def delete_alarms_under_user(user_id: int = Query(...)):
         # Bulk delete all alarms corresponding to the user
         deleted_count = db.query(AlarmDB).filter_by(user_id=user_id).delete(synchronize_session=False)
         db.commit()
-
+        print(f"[Alarm Manager] Deleted alarms under {user_id}")
         return {"deleted": deleted_count}
 
 @app.delete("/alarms/{alarm_id}")
@@ -85,5 +86,6 @@ def delete_alarm(alarm_id: int):
             raise HTTPException(status_code=404, detail="Alarm not found")
         db.delete(alarm)
         db.commit()
+        print(f"[Alarm Manager] Added alarm: id={alarm.id}, time={alarm.time}, message={alarm.message}")
         delete_event(alarm_id)
         return {"deleted_id": alarm_id}

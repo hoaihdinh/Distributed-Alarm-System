@@ -3,4 +3,4 @@ uvicorn[standard]
 apscheduler
 aiohttp
 pydantic
-pytz
+requests
