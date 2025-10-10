@@ -1,11 +1,11 @@
+import json
+import asyncio
+from typing import Dict
 from fastapi import FastAPI, Request, Query
 from fastapi.responses import StreamingResponse
 from pydantic_models import Message
 from database_models import NotificationDB
 from database import SessionLocal, init_db
-import asyncio
-from typing import Dict
-import json
 
 app = FastAPI(title="Notification Manager")
 
@@ -22,6 +22,7 @@ async def startup_event():
         for notif in undelivered:
             if notif.user_id not in user_queues:
                 user_queues[notif.user_id] = asyncio.Queue()
+            
             await user_queues[notif.user_id].put({"id": notif.id, "message": notif.message})
             print(f"[Notification Manager] Added notification \"{notif.message}\" to queue for User {notif.user_id}")
 
@@ -50,7 +51,7 @@ async def notifications_stream(user_id: int = Query(...)):
                             db.commit()
 
                 print(f"[Notification Manager] Pushing notification \"{json.dumps(message)}\" to User {user_id}")
-                yield f"data: {json.dumps(message)}\n\n" # Sends it via SSE
+                yield f"data: {json.dumps(message)}\n\n" # Sends it over stream
         except asyncio.CancelledError:
             pass
 
@@ -68,8 +69,7 @@ async def notify_user(user_id: int, msg: Message):
         db.commit()
         db.refresh(new_notif)
 
-    # Add the notification to the queue
     await user_queues[user_id].put({"id": new_notif.id, "message": msg.message})
-    
     print(f"[Notification Manager] Added notification \"{msg.message}\" to queue for User {user_id}")
+    
     return {"status": "queued"}

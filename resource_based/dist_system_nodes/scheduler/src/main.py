@@ -1,6 +1,6 @@
-from event_scheduler import startup, schedule_alarm_event, delete_alarm_event, shutdown
-from pydantic_models import EventTime
 from fastapi import FastAPI, HTTPException
+from pydantic_models import EventTime
+from event_scheduler import startup, schedule_alarm_event, delete_alarm_event, shutdown
 
 app = FastAPI(title="Event Scheduler")
 

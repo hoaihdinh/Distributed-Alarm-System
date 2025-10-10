@@ -7,4 +7,4 @@ class AlarmDB(Base):
     user_id = Column(Integer, nullable=False)
     message = Column(String, nullable=False)
     time = Column(DateTime(timezone=True), nullable=False)
-    status = Column(String, nullable=False, default="pending")
+    status = Column(String, nullable=False, default="pending") # pending, late, notified

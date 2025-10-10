@@ -1,7 +1,7 @@
+import secrets
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_cors import CORS
 import requests
-import secrets
 
 ALARM_DIST_SYSTEM_URL = "http://api_gateway:5000"
 

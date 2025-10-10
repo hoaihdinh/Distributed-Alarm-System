@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
-import aiohttp
-import requests
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
+import aiohttp
+import requests
 
 ALARM_URL = "http://alarm_manager:5001/alarms"
 NOTIFY_URL = "http://notification_manager:5004/notify"
@@ -10,28 +10,26 @@ NOTIFY_URL = "http://notification_manager:5004/notify"
 scheduler = AsyncIOScheduler()
 session: aiohttp.ClientSession | None = None
 
-async def create_notification(alarm_id: int, scheduled_time: datetime):
+async def create_notification(alarm_id: int):
     try:
-        async with session.get(f"{ALARM_URL}/{alarm_id}") as response:
-            if response.status != 200:
-                print(f"[Scheduler] Alarm {alarm_id} fetch failed ({response.status})")
-                return
-            alarm = dict(await response.json())
+        # Updates the alarm status to notified
+        async with session.put(
+            f"{ALARM_URL}/{alarm_id}",
+            json={"status": "notified"},
+        ) as response:
+            if response.status == 200:
+                alarm = await response.json()
+                print(f"[Scheduler] Alarm {alarm_id} updated status to notified")
+            else:
+                print(f"[Scheduler] Failed to update alarm {alarm_id}: {response.status}")
 
-        # Verify that alarm data is consistent (has not been notified or late and time is the same)
-        if alarm["status"] == "pending" and datetime.fromisoformat(alarm["time"]) == scheduled_time:
-            async with session.put(
-                f"{ALARM_URL}/{alarm_id}",
-                json={"status": "notified"},
-            ) as put_response:
-                print(f"[Scheduler] Alarm {alarm_id} status notified ({put_response.status})")
+        # Notifies the corresponding user about the alarm
+        async with session.post(
+            f"{NOTIFY_URL}/{alarm["user_id"]}",
+            json={"message": alarm["message"]}
+        ) as notify_response:
+            print(f"[Scheduler] Alarm {alarm_id} POST to notification_manager")
 
-            async with session.post(
-                f"{NOTIFY_URL}/{alarm["user_id"]}",
-                json={"message": alarm["message"]}
-            ) as notify_response:
-                print(f"[Scheduler] Alarm {alarm_id} POST to notification_manager")
-    
         print(f"[Scheduler] Alarm {alarm_id} executed and removed event")
     except Exception as e:
         print(f"[Scheduler] Alarm {alarm_id} error while executing event: {e}")
@@ -47,7 +45,7 @@ def schedule_alarm_event(alarm_id: int, time: datetime) -> dict[str, str]:
         create_notification,
         trigger=trigger,
         id=str(alarm_id),
-        args=[alarm_id, time],
+        args=[alarm_id],
         misfire_grace_time=60,  # run up to 60s late if missed
         coalesce=True
     )
@@ -80,7 +78,7 @@ def delete_alarm_event(alarm_id: int) -> bool:
     
     return False
 
-async def schedule_pending_alarms_startup():
+async def schedule_all_pending_alarms():
     async with session.get(f"{ALARM_URL}", params={"status": "pending"}) as response:
         if response.status != 200:
             print(f"[Scheduler] Failed to fetch pending alarms ({response.status})")
@@ -100,7 +98,7 @@ async def startup():
     global session
     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
     scheduler.start()
-    await schedule_pending_alarms_startup()
+    await schedule_all_pending_alarms()
 
 async def shutdown():
     scheduler.shutdown(wait=False)

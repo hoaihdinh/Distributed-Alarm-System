@@ -6,7 +6,6 @@ from event_scheduler import create_event, update_event, delete_event
 
 app = FastAPI(title="Alarm Manager")
 
-# Create tables
 @app.on_event("startup")
 def startup_event():
     init_db()
@@ -16,7 +15,7 @@ def root():
     return {"message": "Alarm Manager is running"}
     
 @app.get("/alarms")
-def get_user_alarms(user_id: int | None = None, status: str | None = None):
+def get_all_alarms(user_id: int | None = None, status: str | None = None):
     with SessionLocal() as db:
         query = db.query(AlarmDB)
 

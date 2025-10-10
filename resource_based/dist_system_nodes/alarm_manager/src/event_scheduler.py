@@ -1,5 +1,5 @@
-import requests
 from datetime import datetime
+import requests
 
 SCHEDULER_URL = "http://scheduler:5002/events"
 

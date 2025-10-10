@@ -11,6 +11,7 @@
     button:hover { background: #004c99; }
   </style>
 </head>
+
 <body>
   <h1>Distributed Alarm System</h1>
   <form id="loginForm">
@@ -21,65 +22,64 @@
   </form>
 
   <div id="message" style="color:red; margin-top:1em;"></div>
+</body>
 
-  <script>
+<script>
   document.getElementById("signupButton").addEventListener("click", async () => {
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
-      const messageDiv = document.getElementById("message");
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const messageDiv = document.getElementById("message");
 
-      try {
-          const response = await fetch("/users/register", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ username, password })
-          });
+    try {
+      const response = await fetch("/users/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
 
-          if (response.status === 201) {
-              messageDiv.style.color = "green";
-              messageDiv.textContent = "User created successfully! Redirecting...";
-              setTimeout(() => { window.location.href = "/dashboard"; }, 500);
-          } else if (response.status === 409) {
-              messageDiv.style.color = "red";
-              messageDiv.textContent = "User already exists!";
-          } else {
-              messageDiv.style.color = "red";
-              messageDiv.textContent = "Something went wrong!";
-          }
-      } catch (err) {
-          messageDiv.style.color = "red";
-          messageDiv.textContent = "Network error!";
+      if (response.status === 201) {
+        messageDiv.style.color = "green";
+        messageDiv.textContent = "User created successfully! Redirecting...";
+        setTimeout(() => { window.location.href = "/dashboard"; }, 500);
+      } else if (response.status === 409) {
+        messageDiv.style.color = "red";
+        messageDiv.textContent = "User already exists!";
+      } else {
+        messageDiv.style.color = "red";
+        messageDiv.textContent = "Something went wrong!";
       }
+    } catch (err) {
+      messageDiv.style.color = "red";
+      messageDiv.textContent = "Network error!";
+    }
   });
   document.getElementById("loginButton").addEventListener("click", async () => {
-      const username = document.getElementById("username").value;
-      const password = document.getElementById("password").value;
-      const messageDiv = document.getElementById("message");
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const messageDiv = document.getElementById("message");
 
-      try {
-          const response = await fetch("/users/authenticate", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ username, password })
-          });
+    try {
+      const response = await fetch("/users/authenticate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
 
-          if (response.status === 201) {
-              messageDiv.style.color = "green";
-              messageDiv.textContent = "User login successfully! Redirecting...";
-              setTimeout(() => { window.location.href = "/dashboard"; }, 500);
-          } else if (response.status === 401) {
-              messageDiv.style.color = "red";
-              messageDiv.textContent = "Invalid credentials!";
-          } else {
-              messageDiv.style.color = "red";
-              messageDiv.textContent = "Something went wrong!";
-          }
-      } catch (err) {
-          messageDiv.style.color = "red";
-          messageDiv.textContent = "Network error!";
+      if (response.status === 201) {
+        messageDiv.style.color = "green";
+        messageDiv.textContent = "User login successfully! Redirecting...";
+        setTimeout(() => { window.location.href = "/dashboard"; }, 500);
+      } else if (response.status === 401) {
+        messageDiv.style.color = "red";
+        messageDiv.textContent = "Invalid credentials!";
+      } else {
+        messageDiv.style.color = "red";
+        messageDiv.textContent = "Something went wrong!";
       }
+    } catch (err) {
+      messageDiv.style.color = "red";
+      messageDiv.textContent = "Network error!";
+    }
   });
-  </script>
-
- </body>
+</script>
 </html>

@@ -6,7 +6,6 @@ ALARM_URL = "http://alarm_manager:5001/alarms"
 USER_URL  = "http://user_manager:5003/users"
 NOTIFICATION_URL = "http://notification_manager:5004"
 
-
 app = FastAPI(title="API Gateway")
 
 @app.get("/")
