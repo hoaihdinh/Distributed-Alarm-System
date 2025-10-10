@@ -22,7 +22,8 @@ async def startup_event():
         for notif in undelivered:
             if notif.user_id not in user_queues:
                 user_queues[notif.user_id] = asyncio.Queue()
-            await user_queues[notif.user_id].put({"message": notif.message})
+            await user_queues[notif.user_id].put({"id": notif.id, "message": notif.message})
+            print(f"[Notification Manager] Added notification \"{notif.message}\" to queue for User {notif.user_id}")
 
 @app.get("/")
 def root():
@@ -38,7 +39,7 @@ async def notifications_stream(user_id: int = Query(...)):
         try:
             while True:
                 message = await queue.get()  # wait for new messages
-                
+
                 # Mark as delivered in the database
                 notif_id = message.get("id")
                 if notif_id:
