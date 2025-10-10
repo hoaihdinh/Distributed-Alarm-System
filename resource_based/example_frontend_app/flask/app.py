@@ -60,6 +60,11 @@ def authenticate_user():
     else:
         return jsonify({"error": "Unknown error"}), 500
 
+@app.get("/users/logout")
+def logout_user():
+    session.clear()
+    return redirect(url_for("index"))
+
 @app.get("/alarms/<int:alarm_id>")
 def get_alarm(alarm_id: int):
     if "user_id" not in session:
