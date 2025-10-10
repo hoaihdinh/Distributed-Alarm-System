@@ -1,0 +1,79 @@
+from fastapi import FastAPI, HTTPException, Request
+from passlib.context import CryptContext
+from schemas import User, UserOut, UpdateUser
+from models import UserDB
+from database import SessionLocal, init_db
+from sqlalchemy import exists
+from utility import delete_alarms_for_user
+
+app = FastAPI(title="User Manager")
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+
+# Create tables
+@app.on_event("startup")
+def startup_event():
+    init_db()
+
+@app.get("/")
+def root():
+    return {"message": "User Manager is running"}
+
+@app.get("/users/{user_id}")
+def get_user(user_id: int):
+    with SessionLocal() as db:
+        user = db.query(UserDB).filter_by(id=user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return UserOut(id=user.id, username=user.username)
+
+@app.post("/users/register")
+def create_user(user: User):
+    with SessionLocal() as db:
+        if db.query(UserDB).filter(UserDB.username == user.username).first():
+            raise HTTPException(status_code=409, detail="User account already exists")
+
+        password_hash = pwd_context.hash(user.password)
+        new_user = UserDB(username=user.username, password_hash=password_hash)
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+
+        return UserOut(id=new_user.id, username=new_user.username)
+
+@app.post("/users/authenticate")
+def authenticate_user(user: User):
+    with SessionLocal() as db:
+        user_db_entry = db.query(UserDB).filter(UserDB.username == user.username).first()
+        if not user_db_entry:
+            raise HTTPException(status_code=404, detail="User account not found")
+        if not pwd_context.verify(user.password, user_db_entry.password_hash):
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+
+        return UserOut(id=user_db_entry.id, username=user_db_entry.username)
+
+@app.put("/users/{user_id}")
+def update_user(user_id: int, updated_fields: UpdateUser):
+    with SessionLocal() as db:
+        alarm = db.query(UserDB).filter_by(id=user_id).first()
+        if not alarm:
+            raise HTTPException(status_code=404, detail="User not found")
+        for key, value in updated_fields.dict(exclude_unset=True).items():
+            setattr(alarm, key, value)
+        db.commit()
+        db.refresh(alarm)
+
+        return alarm
+
+@app.delete("/users/{user_id}")
+def delete_user(user_id: int):
+    with SessionLocal() as db:
+        if not db.query(exists().where(UserDB.id == user_id)).scalar():
+            raise HTTPException(status_code=404, detail="User not found")
+    
+        delete_alarms_for_user(user_id)
+
+        user = db.query(UserDB).filter_by(id=user_id).first()
+        db.delete(user)
+        db.commit()
+        
+        

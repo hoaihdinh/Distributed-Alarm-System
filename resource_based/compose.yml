@@ -4,48 +4,59 @@ services:
     container_name: api_gateway
     ports:
       - 5000:5000
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
-      interval: 5s
-      retries: 5
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+    #   interval: 5s
+    #   retries: 5
   
   alarm_manager:
     build: ./alarm_manager
     container_name: alarm_manager
     ports:
       - 5001:5001
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5001/"]
-      interval: 5s
-      retries: 5
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:5001/"]
+    #   interval: 5s
+    #   retries: 5
+  
   scheduler:
     build: ./scheduler
     container_name: scheduler
     ports:
       - 5002:5002
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5002/"]
-      interval: 5s
-      retries: 5
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:5002/"]
+    #   interval: 5s
+    #   retries: 5
 
-  node4:
-    build: ./node4
-    container_name: node4
-
-  node5:
-    build: ./node5
-    container_name: node5
+  user_manager:
+    build: ./user_manager
+    container_name: user_manager
+    ports:
+      - 5003:5003
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:5003/"]
+    #   interval: 5s
+    #   retries: 5
+  
+  notification_manager:
+    build: ./notification_manager
+    container_name: notification_manager
+    ports:
+      - 5004:5004
 
   user:
     build: ../user
     container_name: user
     ports:
       - 8080:8080
-    depends_on:
-      api_gateway:
-        condition: service_healthy
-      alarm_manager:
-        condition: service_healthy
-      scheduler:
-        condition: service_healthy
+    # depends_on:
+    #   api_gateway:
+    #     condition: service_healthy
+    #   alarm_manager:
+    #     condition: service_healthy
+    #   scheduler:
+    #     condition: service_healthy
+    #   user_manager:
+    #     condition: service_healthy
 

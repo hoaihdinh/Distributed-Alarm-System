@@ -4,6 +4,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
 
 ALARM_URL = "http://alarm_manager:5001/alarms"
+NOTIFY_URL = "http://notification_manager:5004/notify"
 
 scheduler = AsyncIOScheduler()
 session: aiohttp.ClientSession | None = None
@@ -23,8 +24,15 @@ async def create_notification(alarm_id: int, scheduled_time: datetime):
                 json={"status": "ready"},
             ) as put_response:
                 print(f"[Alarm {alarm_id}] ready → {put_response.status}")
-        else:
-            print(f"[Alarm {alarm_id}] skipped (already updated or mismatched time)")
+
+            async with session.post(
+                f"{NOTIFY_URL}/{alarm["user_id"]}",
+                json={"message": alarm["message"]}
+            ) as notify_response:
+                print(f"POST notify request")
+    
+        print(f"Removing event with [Alarm {alarm_id}]")
+        scheduler.remove_job(str(alarm_id)) # remove the event as the job has been triggered
 
     except Exception as e:
         print(f"[Alarm {alarm_id}] error: {e}")
