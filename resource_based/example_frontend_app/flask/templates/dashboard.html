@@ -76,7 +76,7 @@
         editForm.elements["message"].value = alarm.message;
 
         // Extract "HH:MM" from datetime string
-        const dt = new Date(alarm.time + "Z"); // append Z to treat as UTC
+        const dt = new Date(alarm.time + "Z"); // append Z for the ISOtimestamp to be recognized as UTC
         const options = { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "America/Chicago" };
         const [hh, mm] = new Intl.DateTimeFormat("en-US", options)
                             .formatToParts(dt)
@@ -108,7 +108,7 @@
 
     async function fetchAlarms() {
         try {
-            const response = await fetch("/alarms");
+            const response = await fetch("/alarms/pending");
             const alarms = await response.json();
 
             // Clear table
@@ -117,8 +117,6 @@
             // Populate table
             alarms.forEach(alarm => {
                 const row = document.createElement("tr");
-
-                // Time from the alarm database is in UTC
                 row.innerHTML = `
                     <td>${alarm.id}</td>
                     <td>${alarm.message}</td>
@@ -128,7 +126,6 @@
                         <button onclick="deleteAlarm(${alarm.id})">Delete</button>
                     </td>
                 `;
-
                 alarmTable.appendChild(row);
             });
         } catch (err) {

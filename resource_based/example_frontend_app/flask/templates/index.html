@@ -38,7 +38,7 @@
           if (response.status === 201) {
               messageDiv.style.color = "green";
               messageDiv.textContent = "User created successfully! Redirecting...";
-              setTimeout(() => { window.location.href = "/dashboard"; }, 1000);
+              setTimeout(() => { window.location.href = "/dashboard"; }, 500);
           } else if (response.status === 409) {
               messageDiv.style.color = "red";
               messageDiv.textContent = "User already exists!";
@@ -63,10 +63,10 @@
               body: JSON.stringify({ username, password })
           });
 
-          if (response.status === 200) {
+          if (response.status === 201) {
               messageDiv.style.color = "green";
               messageDiv.textContent = "User login successfully! Redirecting...";
-              setTimeout(() => { window.location.href = "/dashboard"; }, 1000);
+              setTimeout(() => { window.location.href = "/dashboard"; }, 500);
           } else if (response.status === 401) {
               messageDiv.style.color = "red";
               messageDiv.textContent = "Invalid credentials!";

@@ -28,7 +28,6 @@ def register_user():
     username = data["username"]
     password = data["password"]
 
-    # Call API Gateway
     resp = requests.post(f"{ALARM_DIST_SYSTEM_URL}/users/register", json={
         "username": username,
         "password": password
@@ -48,7 +47,6 @@ def authenticate_user():
     username = data["username"]
     password = data["password"]
 
-    # Call API Gateway
     resp = requests.post(f"{ALARM_DIST_SYSTEM_URL}/users/authenticate", json={
         "username": username,
         "password": password
@@ -69,7 +67,7 @@ def get_alarm(alarm_id: int):
     resp = requests.get(f"{ALARM_DIST_SYSTEM_URL}/alarms/{alarm_id}")
     return jsonify(resp.json())
 
-@app.get("/alarms")
+@app.get("/alarms/pending")
 def get_pending_alarms():
     if "user_id" not in session:
         return redirect(url_for("index"))
