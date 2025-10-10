@@ -1,0 +1,12 @@
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime
+from database import Base
+
+class NotificationDB(Base):
+    __tablename__ = "notifications"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    message = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    delivered = Column(Boolean, default=False)
