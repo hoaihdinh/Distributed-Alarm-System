@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request
 from passlib.context import CryptContext
-from schemas import User, UserOut, UpdateUser
-from models import UserDB
+from pydantic_models import User, UserOut, UpdateUser
+from database_models import UserDB
 from database import SessionLocal, init_db
 from sqlalchemy import exists
 from utility import delete_alarms_for_user

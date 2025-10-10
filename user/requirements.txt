@@ -1,5 +1,0 @@
-<<<<<<< Updated upstream
-=======
-Flask
->>>>>>> Stashed changes
-requests

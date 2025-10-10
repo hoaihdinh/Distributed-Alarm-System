@@ -19,8 +19,8 @@ def root():
 @app.api_route("/events/{alarm_id}", methods=["POST", "PUT"])
 def add_event(alarm_id: int, event_time: EventTime):
     schedule_alarm_event(alarm_id, event_time.time)
-    print(f"Scheduled alarm {alarm_id} for {event_time.time}")
-    return {"message": f"Scheduled alarm {alarm_id} for {event_time.time}"}
+    print(f"Scheduled alarm {alarm_id} for {event_time.time} UTC")
+    return {"message": f"Scheduled alarm {alarm_id} for {event_time.time} UTC"}
 
 @app.delete("/events/{alarm_id}")
 def delete_event(alarm_id: int):

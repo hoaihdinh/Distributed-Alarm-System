@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, Query
+from fastapi.responses import StreamingResponse
 import httpx
 
 ALARM_URL = "http://alarm_manager:5001/alarms"
@@ -49,7 +50,19 @@ async def users_proxy(request: Request, path: str):
         )
 
 @app.get("/notifications/stream")
-async def sse_proxy(request: Request, user_id: int):
-    async with httpx.AsyncClient(timeout=None) as client:
-        resp = await client.stream("GET", f"{NOTIFICATION_URL}/notifications/stream", params={"user_id": user_id})
-        return resp
+async def sse_proxy(request: Request, user_id: int = Query(...)):
+    async def event_generator():
+        async with httpx.AsyncClient(timeout=None) as client:
+            async with client.stream(
+                "GET",
+                f"{NOTIFICATION_URL}/notifications/stream",
+                params={"user_id": user_id},
+            ) as response:
+                async for chunk in response.aiter_bytes():
+                    yield chunk
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Access-Control-Allow-Origin": "*"},
+    )

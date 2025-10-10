@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, Query
 from fastapi.responses import StreamingResponse
+from pydantic_models import Message
 import asyncio
 from typing import Dict
 import json
@@ -30,8 +31,8 @@ async def notifications_stream(user_id: int = Query(...)):
     return StreamingResponse(event_generator(user_queues[user_id]), media_type="text/event-stream")
 
 @app.post("/notify/{user_id}")
-async def notify_user(user_id: int, message: str):
+async def notify_user(user_id: int, msg: Message):
     if user_id not in user_queues:
         user_queues[user_id] = asyncio.Queue()
-    await user_queues[user_id].put({"message": message})
+    await user_queues[user_id].put({"message": msg.message})
     return {"status": "queued"}

@@ -2,6 +2,7 @@ from datetime import datetime
 import aiohttp
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.date import DateTrigger
+from pytz import timezone
 
 ALARM_URL = "http://alarm_manager:5001/alarms"
 NOTIFY_URL = "http://notification_manager:5004/notify"
@@ -53,7 +54,7 @@ def schedule_alarm_event(alarm_id: int, time: datetime):
         coalesce=True
     )
 
-    print(f"[Scheduler] Scheduled alarm {alarm_id} at {time.isoformat()}")
+    print(f"[Scheduler] Scheduled alarm {alarm_id} at {time.isoformat()} UTC")
 
 def delete_alarm_event(alarm_id: int):
     job = scheduler.get_job(str(alarm_id))
@@ -65,9 +66,7 @@ async def startup():
     global session
     session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5))
     scheduler.start()
-    print("[Scheduler] Started")
 
 async def shutdown():
     scheduler.shutdown(wait=False)
     await session.close()
-    print("[Scheduler] Stopped")

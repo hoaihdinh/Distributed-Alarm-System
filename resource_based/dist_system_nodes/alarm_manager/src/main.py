@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Query
-from schemas import Alarm, UpdateAlarm
-from models import AlarmDB
+from pydantic_models import Alarm, UpdateAlarm
+from database_models import AlarmDB
 from database import SessionLocal, init_db
 from event_scheduler import create_event, update_event, delete_event
 
