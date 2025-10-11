@@ -5,6 +5,9 @@
 cd resource_based
 docker compose up --build
 ```
+
+## Using the Example Fontend App
+
 Once the example_frontend_app container is running, then visit http://localhost:8080.
 
 If this is the first time you start this application, then there will be no accounts available.
@@ -23,7 +26,6 @@ Adding alarms for the current time (e.g. adding an alarm for 12:00PM when it is 
 
 Under the Notifications tab, this is where notifications are pushed when a Scheduled Alarm is due. 
 
-
 ## Clean Up after running Resource Based Arch
 ```
 // assuming still in the resource_based directory
@@ -41,6 +43,3 @@ docker compose up --build
 // assuming still in the arch_2 directory
 docker compose down
 ```
-
-## Disclaimer
-- As of right now, you must Clean Up if you want to switch arch

@@ -2,13 +2,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "postgresql+psycopg2://alarmuser:alarmpass@postgres:5432/alarmdb"
+DATABASE_URL = "sqlite:///./data/alarms.db"
 
 engine = create_engine(
     DATABASE_URL,
-    pool_size=20,         # more concurrent connections
-    max_overflow=40,      # allow temporary spikes
-    pool_timeout=30,      # seconds to wait for a connection
+    connect_args={"check_same_thread": False}  # SQLite-specific
 )
 
 SessionLocal = sessionmaker(

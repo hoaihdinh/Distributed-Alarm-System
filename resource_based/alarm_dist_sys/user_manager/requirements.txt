@@ -5,4 +5,3 @@ pydantic
 requests
 passlib[bcrypt]
 argon2-cffi
-psycopg2-binary

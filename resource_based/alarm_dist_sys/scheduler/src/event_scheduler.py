@@ -5,7 +5,7 @@ import aiohttp
 import requests
 
 ALARM_URL = "http://alarm_manager:5001/alarms"
-NOTIFY_URL = "http://notification_manager:5004/notify"
+NOTIFY_URL = "http://notification_manager:5003/notify"
 
 scheduler = AsyncIOScheduler()
 session: aiohttp.ClientSession | None = None

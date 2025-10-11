@@ -1,18 +1,4 @@
 services:
-  postgres:
-    image: postgres:16
-    container_name: postgres
-    environment:
-      POSTGRES_USER: alarmuser
-      POSTGRES_PASSWORD: alarmpass
-      POSTGRES_DB: alarmdb
-    ports:
-      - 5432:5432
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - alarm_dist_sys
-
   api_gateway:
     build: ./alarm_dist_sys/api_gateway
     image: api_gateway:latest
@@ -35,7 +21,7 @@ services:
         condition: service_healthy
       scheduler:
         condition: service_healthy
-
+  
   alarm_manager:
     build: ./alarm_dist_sys/alarm_manager
     image: alarm_manager:latest
@@ -44,64 +30,66 @@ services:
       - 5001:5001
     networks:
       - alarm_dist_sys
+    volumes:
+      - ./data/alarm_manager:/app/data
     environment:
-      DATABASE_URL: postgresql+psycopg2://alarmuser:alarmpass@postgres:5432/alarmdb
+      - DATABASE_URL=sqlite:///./data/alarms.db
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5001/"]
       interval: 5s
       retries: 5
+  
+  scheduler:
+    build: ./alarm_dist_sys/scheduler
+    image: scheduler:latest
+    container_name: scheduler
+    ports:
+      - 5004:5004
+    networks:
+      - alarm_dist_sys
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5004/"]
+      interval: 5s
+      retries: 5
     depends_on:
-      - postgres
+      notification_manager:
+        condition: service_healthy
+      alarm_manager:
+        condition: service_healthy
 
   user_manager:
     build: ./alarm_dist_sys/user_manager
     image: user_manager:latest
     container_name: user_manager
     ports:
-      - 5003:5003
+      - 5002:5002
     networks:
       - alarm_dist_sys
+    volumes:
+      - ./data/user_manager:/app/data
     environment:
-      DATABASE_URL: postgresql+psycopg2://alarmuser:alarmpass@postgres:5432/alarmdb
+      - DATABASE_URL=sqlite:///./data/users.db
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5003/"]
+      test: ["CMD", "curl", "-f", "http://localhost:5002/"]
       interval: 5s
       retries: 5
-    depends_on:
-      - postgres
 
   notification_manager:
     build: ./alarm_dist_sys/notification_manager
     image: notification_manager:latest
     container_name: notification_manager
     ports:
-      - 5004:5004
+      - 5003:5003
     networks:
       - alarm_dist_sys
+    volumes:
+      - ./data/notification_manager:/app/data
     environment:
-      DATABASE_URL: postgresql+psycopg2://alarmuser:alarmpass@postgres:5432/alarmdb
+      - DATABASE_URL=sqlite:///./data/users.db
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5004/"]
+      test: ["CMD", "curl", "-f", "http://localhost:5003/"]
       interval: 5s
       retries: 5
-    depends_on:
-      - postgres
-
-  scheduler:
-    build: ./alarm_dist_sys/scheduler
-    image: scheduler:latest
-    container_name: scheduler
-    ports:
-      - 5002:5002
-    networks:
-      - alarm_dist_sys
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5002/"]
-      interval: 5s
-      retries: 5
-    depends_on:
-      - notification_manager
-      - alarm_manager
 
   example_frontend_app:
     build: ./example_frontend_app
@@ -114,9 +102,6 @@ services:
     depends_on:
       api_gateway:
         condition: service_healthy
-
-volumes:
-  postgres_data:
 
 networks:
   alarm_dist_sys:
