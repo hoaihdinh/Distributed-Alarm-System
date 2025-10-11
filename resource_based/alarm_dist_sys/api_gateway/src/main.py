@@ -15,11 +15,11 @@ def root():
 @app.api_route("/alarms/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
 async def alarms_proxy(request: Request, path: str):
     target_url = f"{ALARM_URL}/{path}" if path != "" else ALARM_URL
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=httpx.Timeout(60.0)) as client:
         response = await client.request(
             request.method,
             target_url,
-            params=request.query_params,
+            params=dict(request.query_params),
             content=await request.body(),
             headers=dict(request.headers),
         )
@@ -33,11 +33,11 @@ async def alarms_proxy(request: Request, path: str):
 @app.api_route("/users/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
 async def users_proxy(request: Request, path: str):
     target_url = f"{USER_URL}/{path}" if path != "" else USER_URL
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=httpx.Timeout(60.0)) as client:
         response = await client.request(
             request.method,
             target_url,
-            params=request.query_params,
+            params=dict(request.query_params),
             content=await request.body(),
             headers=dict(request.headers),
         )

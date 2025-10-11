@@ -3,6 +3,7 @@ import asyncio
 from typing import Dict
 from fastapi import FastAPI, Request, Query
 from fastapi.responses import StreamingResponse
+from sqlalchemy import false
 from pydantic_models import Message
 from database_models import NotificationDB
 from database import SessionLocal, init_db
@@ -18,7 +19,7 @@ async def startup_event():
 
     # Load undelivered notifications into queues
     with SessionLocal() as db:
-        undelivered = db.query(NotificationDB).filter_by(delivered=False).all()
+        undelivered = db.query(NotificationDB).filter(NotificationDB.delivered == false()).all()
         for notif in undelivered:
             if notif.user_id not in user_queues:
                 user_queues[notif.user_id] = asyncio.Queue()

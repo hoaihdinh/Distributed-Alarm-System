@@ -5,6 +5,6 @@ class AlarmDB(Base):
     __tablename__ = "alarms"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, nullable=False)
-    message = Column(String, nullable=False)
+    message = Column(String(255), nullable=False)
     time = Column(DateTime(timezone=True), nullable=False)
-    status = Column(String, nullable=False, default="pending") # pending, late, notified
+    status = Column(String(10), nullable=False, default="pending") # pending, late, notified

@@ -21,7 +21,7 @@ def root():
 @app.get("/users/{user_id}")
 def get_user(user_id: int):
     with SessionLocal() as db:
-        user = db.query(UserDB).filter_by(id=user_id).first()
+        user = db.query(UserDB).filter(UserDB.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         return UserOut(id=user.id, username=user.username)
@@ -54,15 +54,15 @@ def authenticate_user(user: User):
 @app.put("/users/{user_id}")
 def update_user(user_id: int, updated_fields: UpdateUser):
     with SessionLocal() as db:
-        alarm = db.query(UserDB).filter_by(id=user_id).first()
-        if not alarm:
+        user_db_entry = db.query(UserDB).filter(UserDB.id == user_id).first()
+        if not user_db_entry:
             raise HTTPException(status_code=404, detail="User not found")
         for key, value in updated_fields.dict(exclude_unset=True).items():
-            setattr(alarm, key, value)
+            setattr(user_db_entry, key, value)
         db.commit()
-        db.refresh(alarm)
+        db.refresh(user_db_entry)
 
-        return alarm
+        return user_db_entry
 
 @app.delete("/users/{user_id}")
 def delete_user(user_id: int):
@@ -72,7 +72,7 @@ def delete_user(user_id: int):
     
         delete_alarms_for_user(user_id)
 
-        user = db.query(UserDB).filter_by(id=user_id).first()
+        user = db.query(UserDB).filter(UserDB.id == user_id).first()
         db.delete(user)
         db.commit()
         

@@ -1,5 +1,6 @@
 fastapi
 uvicorn[standard]
-sqlalchemy
 pydantic
-requests
+sqlalchemy
+psycopg2-binary
+

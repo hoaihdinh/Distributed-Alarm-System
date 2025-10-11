@@ -82,7 +82,7 @@
     editForm.elements["message"].value = alarm.message;
 
     // Extract "HH:MM" from datetime string
-    const dt = new Date(alarm.time + "Z"); // append Z for the ISOtimestamp to be recognized as UTC
+    const dt = new Date(alarm.time);
     const options = { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "America/Chicago" };
     const [hh, mm] = new Intl.DateTimeFormat("en-US", options)
                         .formatToParts(dt)
@@ -102,7 +102,7 @@
       minute: "2-digit",
       hour12: true,
       timeZone: "America/Chicago"
-    }).format(new Date(timestamp+"Z")); // timestamp is in UTC
+    }).format(new Date(timestamp)); // timestamp is in UTC
   }
 
   function ConvertHHMMToISO(hhmm) {
