@@ -13,12 +13,12 @@ import requests
 import threading
 import time
 
-API_GATEWAY_URL = "http://node4:8080/notify"
+API_GATEWAY_URL = "http://api_gateway:8080/notify"
 
 # continuously checks for due alarms from scheduler node
 def run_notification_client():
     time.sleep(5)   # ensures scheduler is alive before connecting
-    scheduler_channel = grpc.insecure_channel('node2:50052')
+    scheduler_channel = grpc.insecure_channel('scheduler:50052')
     scheduler_stub = alarm_pb2_grpc.SchedulerStub(scheduler_channel)
     while True:
         try:

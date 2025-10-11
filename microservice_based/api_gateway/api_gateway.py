@@ -1,7 +1,5 @@
-# api_gateway.py
-# run node 1, 2, 3 and then do this:
-# python -m uvicorn api_gateway:app --host 0.0.0.0 --port 8080
-# while in /node4, can visit http://localhost:8080/
+
+# can visit http://localhost:8080/
 
 import grpc, time
 from fastapi import FastAPI, Form, Request
@@ -18,13 +16,13 @@ from google.protobuf import empty_pb2
 app = FastAPI(title="Distributed Alarm System API")
 
 # gRPC stubs
-storage_channel = grpc.insecure_channel("node1:50051")
+storage_channel = grpc.insecure_channel("storage:50051")
 storage_stub = alarm_pb2_grpc.StorageStub(storage_channel)
 
-scheduler_channel = grpc.insecure_channel("node2:50052")
+scheduler_channel = grpc.insecure_channel("scheduler:50052")
 scheduler_stub = alarm_pb2_grpc.SchedulerStub(scheduler_channel)
 
-account_channel = grpc.insecure_channel("node5:50053")
+account_channel = grpc.insecure_channel("accounts:50053")
 account_stub = alarm_pb2_grpc.AccountStub(account_channel)
 
 

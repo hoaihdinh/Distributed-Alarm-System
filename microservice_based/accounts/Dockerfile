@@ -3,9 +3,9 @@
 FROM python:3.12
 
 WORKDIR /app
-COPY node2.py .
+COPY accounts.py .
 COPY alarm_pb2.py alarm_pb2_grpc.py .
 
 RUN pip install --no-cache-dir grpcio grpcio-tools protobuf
 
-CMD ["python", "node2.py"]
+CMD ["python", "accounts.py"]

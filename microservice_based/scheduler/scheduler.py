@@ -20,9 +20,9 @@ from datetime import datetime
 
 class SchedulerServicer(alarm_pb2_grpc.SchedulerServicer):
     def __init__(self):
-        self.storage_channel = grpc.aio.insecure_channel("node1:50051")  
+        self.storage_channel = grpc.aio.insecure_channel("storage:50051")  
         self.storage_stub = alarm_pb2_grpc.StorageStub(self.storage_channel)
-        self.account_channel = grpc.insecure_channel("node5:50053")
+        self.account_channel = grpc.insecure_channel("accounts:50053")
         self.account_stub = alarm_pb2_grpc.AccountStub(self.account_channel)
 
     # fwds request for new alarm
