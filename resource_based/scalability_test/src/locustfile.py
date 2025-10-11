@@ -1,41 +1,26 @@
 from locust import HttpUser, task, between, events
 import random
-import time
 import gevent
 from datetime import datetime, timedelta, timezone
 
 class APIUser(HttpUser):
     wait_time = between(1, 3)  # simulate user think time
 
-    def random_alarm_time(self):
-        now = datetime.now(timezone.utc)
-        delta = timedelta(minutes=random.randint(1, 5))
-        return (now + delta).isoformat()
-
-    def open_sse_connection(self):
+    def fetch_alarms(self):
         while True:
-            try:
-                with self.client.get(
-                    f"/notifications/stream?user_id={self.user_id}",
-                    stream=True,
-                    timeout=None,
-                    catch_response=True
-                ) as resp:
-                    resp.success()
-                    for line in enumerate(resp.iter_lines(decode_unicode=True)):
-                        gevent.sleep(0)  # yield to other greenlets
-            except Exception as e:
-                events.request_failure.fire(
-                    request_type="GET",
-                    name="/notifications/stream",
-                    response_time=0,
-                    exception=e
-                )
-
-            gevent.sleep(1)  # backoff before reconnecting
+            with self.client.get(f"/alarms?user_id={self.user_id}", catch_response=True) as response:
+                self.handle_response(response, "Get Alarm Request")
+            gevent.sleep(0.5)
+    
+    def fetch_notifications(self):
+        while True:
+            with self.client.get(f"/notifications?user_id={self.user_id}", catch_response=True) as response:
+                if self.handle_response(response, "Get Notification Request"):
+                    notifs = response.json()
+                    self.notifications = [notif["id"] for notif in notifs]
+            gevent.sleep(0.5)
 
     def on_start(self):
-        """Run once per simulated user at start."""
         self.user_id = None
 
         # Create a new user
@@ -49,17 +34,18 @@ class APIUser(HttpUser):
                 json={"username": username, "password": password},
                 catch_response=True
             ) as response:    
-                if response.ok:
+                if response.status_code in (200, 201):
                     self.user_id = response.json()["id"]
                     self.username = username
                     self.password = password
+                    response.success()
                 elif response.status_code == 409:
                     with self.client.post(
                         "/users/authenticate",
                         json={"username": username, "password": password},
                         catch_response=True
                     ) as response:
-                        if response.ok:
+                        if response.status_code in (200, 201):
                             self.user_id = response.json()["id"]
                             response.success()
                         else:
@@ -67,18 +53,36 @@ class APIUser(HttpUser):
                 else:
                     response.failure(f"Failed to register user {username}: {response.status_code}")
 
-            time.sleep(1)
+            gevent.sleep(1)
 
-        # store alarm IDs created during this session
+        # store alarm and notification IDs created during this session
         self.alarms = []
+        self.notifications = []
         self.create_alarm()
-        gevent.spawn(self.open_sse_connection)
+        # Simulate frontend polling to get notifications and alarms
+        gevent.spawn(self.fetch_alarms)
+        gevent.spawn(self.fetch_notifications)
+
+
+
+    def random_alarm_time(self):
+        now = datetime.now(timezone.utc)
+        delta = timedelta(minutes=random.randint(1, 5))
+        return (now + delta).isoformat()
+
+    def handle_response(self, response, name="Request"):
+        if response.status_code in (200, 201):
+            response.success()
+            return True
+        else:
+            response.failure(f"{name} failed with status {response.status_code}: {response.text}")
+            return False
 
     @task(8)
     def create_alarm(self):
         alarm_time = self.random_alarm_time()
         message = f"Test Alarm for user {self.user_id}"
-
+        
         with self.client.post(
             "/alarms",
             json={
@@ -89,24 +93,18 @@ class APIUser(HttpUser):
             },
             catch_response=True
         ) as response:
-            if response.ok:
+            if self.handle_response(response, "Create Alarm Request"):
                 alarm_id = response.json().get("id")
                 if alarm_id:
                     self.alarms.append(alarm_id)
-                response.success()
-            else:
-                response.failure(f"Failed to create alarm for user {self.user_id}: {response.status_code}")
 
     @task(5)
     def delete_specific_alarm(self):
         if self.alarms:
             alarm_id = random.choice(self.alarms)
             with self.client.delete(f"/alarms/{alarm_id}", catch_response=True) as response:
-                if response.ok:
+                if self.handle_response(response, "Delete Alarm Request"):
                     self.alarms.remove(alarm_id)
-                    response.success()
-                else:
-                    response.failure(f"Failed to delete alarm {alarm_id}: {response.status_code}")
 
     @task(5)
     def update_alarm(self):
@@ -123,16 +121,13 @@ class APIUser(HttpUser):
                 },
                 catch_response=True
             ) as response:
-                if response.ok:
-                    response.success()
-                else:
-                    response.failure(f"Failed to update alarm {alarm_id}: {response.status_code}")
-
-    @task(10)
-    def get_alarms(self):
-        with self.client.get(f"/alarms?user_id={self.user_id}", catch_response=True) as response:
-            if response.ok:
-                response.success()
-            else:
-                response.failure(f"Failed to fetch alarms under user {self.user_id}")
+                self.handle_response(response, "Update Alarm Request")
+                
+    @task(5)
+    def delete_notification(self):
+        if self.notifications:
+            notification_id = random.choice(self.notifications)
+            with self.client.delete(f"/notifications/{notification_id}", catch_response=True) as response:
+                if self.handle_response(response, "Delete Notification Request"):
+                    self.notifications.remove(notification_id)
 

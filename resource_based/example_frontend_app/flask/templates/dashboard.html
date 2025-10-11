@@ -61,18 +61,13 @@
 </body>
 
 <script>
-  ALARM_DIST_SYSTEM_URL = "http://localhost:5000"
-
-  const userId = {{ user_id }}; // Flask template variable
   const alarmTable = document.getElementById("alarm-table");
   const form = document.getElementById("addAlarmForm");
   const modal = document.getElementById("editModal");
   const editForm = document.getElementById("editAlarmForm");
-
-  const eventSource = new EventSource(`${ALARM_DIST_SYSTEM_URL}/notifications/stream?user_id=${userId}`);
+  let fetching = false;
 
   function logout() {
-    eventSource.close();
     window.location.href = "/users/logout";
   }
 
@@ -82,7 +77,7 @@
     editForm.elements["message"].value = alarm.message;
 
     // Extract "HH:MM" from datetime string
-    const dt = new Date(alarm.time);
+    const dt = new Date(alarm.time+"Z");
     const options = { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "America/Chicago" };
     const [hh, mm] = new Intl.DateTimeFormat("en-US", options)
                         .formatToParts(dt)
@@ -102,7 +97,7 @@
       minute: "2-digit",
       hour12: true,
       timeZone: "America/Chicago"
-    }).format(new Date(timestamp)); // timestamp is in UTC
+    }).format(new Date(timestamp+"Z")); // timestamp is in UTC
   }
 
   function ConvertHHMMToISO(hhmm) {
@@ -147,6 +142,40 @@
     }
   }
 
+  async function fetchNotifications() {
+    try {
+      const response = await fetch("/notifications");
+      const notifications = await response.json();
+      const notifDiv = document.getElementById("notifications");
+      notifDiv.innerHTML = "";
+
+      notifications.forEach(notif => {
+
+        const messageElem = document.createElement("div");
+        messageElem.className = "notif";
+        messageElem.innerHTML = `
+          ${notif.message}
+          <button style="font-size:0.8em; margin-left:10px;">Dismiss</button>
+        `;
+        const button = messageElem.querySelector("button");
+        button.addEventListener("click", () => deleteNotification(notif.id));
+        notifDiv.appendChild(messageElem);
+      })
+    } catch (err) {
+      console.error("Failed to fetch notifications:", err);
+    }
+  }
+
+  async function fetchData() {
+    if (fetching)
+      return;
+
+    fetching = true;
+    await fetchAlarms();
+    await fetchNotifications();
+    fetching = false;
+  }
+
   async function editAlarm(id) {
     try {
       const res = await fetch(`/alarms/${id}`);
@@ -159,11 +188,18 @@
 
   async function deleteAlarm(id) {
     await fetch(`/alarms/${id}`, { method: "DELETE" });
-    fetchAlarms();
+    fetchData();
+  }
+
+  async function deleteNotification(id) {
+    await fetch(`/notifications/${id}`, { method: "DELETE" });
+    fetchData();
   }
   
   // Initial fetch
-  fetchAlarms();
+  fetchData();
+
+  setInterval(fetchData, 500);
 
   // Add alarm
   form.addEventListener("submit", async (e) => {
@@ -186,7 +222,7 @@
 
       if (response.ok) {
         form.reset();       // clear the form
-        fetchAlarms();      // refresh table
+        fetchData();
       } else {
         console.error("Failed to add alarm");
       }
@@ -217,7 +253,7 @@
 
       if (res.ok) {
         closeModal();
-        fetchAlarms();
+        fetchData();
       } else {
         console.error("Failed to update alarm");
       }
@@ -225,27 +261,5 @@
       console.error("Error updating alarm:", err);
     }
   });
-
-  // SSE event when message is received
-  eventSource.onmessage = function(event) {
-    const notifDiv = document.getElementById("notifications");
-    const data = JSON.parse(event.data);
-    const messageElem = document.createElement("div");
-    messageElem.className = "notif";
-    messageElem.innerHTML = `
-        ${data.message}
-        <button style="font-size:0.8em; margin-left:10px;">Dismiss</button>
-    `;
-
-    const button = messageElem.querySelector("button");
-    button.addEventListener("click", () => messageElem.remove());
-
-    notifDiv.appendChild(messageElem);
-    fetchAlarms();
-  };
-
-  eventSource.onerror = function(err) {
-    console.error("SSE error:", err);
-  };
 </script>
 </html>

@@ -28,47 +28,25 @@ services:
     container_name: alarm_manager
     ports:
       - 5001:5001
-    networks:
-      - alarm_dist_sys
     volumes:
       - ./data/alarm_manager:/app/data
-    environment:
-      - DATABASE_URL=sqlite:///./data/alarms.db
+    networks:
+      - alarm_dist_sys
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5001/"]
       interval: 5s
       retries: 5
   
-  scheduler:
-    build: ./alarm_dist_sys/scheduler
-    image: scheduler:latest
-    container_name: scheduler
-    ports:
-      - 5004:5004
-    networks:
-      - alarm_dist_sys
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5004/"]
-      interval: 5s
-      retries: 5
-    depends_on:
-      notification_manager:
-        condition: service_healthy
-      alarm_manager:
-        condition: service_healthy
-
   user_manager:
     build: ./alarm_dist_sys/user_manager
     image: user_manager:latest
     container_name: user_manager
     ports:
       - 5002:5002
-    networks:
-      - alarm_dist_sys
     volumes:
       - ./data/user_manager:/app/data
-    environment:
-      - DATABASE_URL=sqlite:///./data/users.db
+    networks:
+      - alarm_dist_sys
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5002/"]
       interval: 5s
@@ -80,17 +58,31 @@ services:
     container_name: notification_manager
     ports:
       - 5003:5003
-    networks:
-      - alarm_dist_sys
     volumes:
       - ./data/notification_manager:/app/data
-    environment:
-      - DATABASE_URL=sqlite:///./data/users.db
+    networks:
+      - alarm_dist_sys
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5003/"]
       interval: 5s
       retries: 5
 
+  scheduler:
+    build: ./alarm_dist_sys/scheduler
+    image: scheduler:latest
+    container_name: scheduler
+    networks:
+      - alarm_dist_sys
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "scheduler_main.py"]
+      interval: 5s
+      retries: 5
+    depends_on:
+      notification_manager:
+        condition: service_healthy
+      alarm_manager:
+        condition: service_healthy
+  
   example_frontend_app:
     build: ./example_frontend_app
     image: example_frontend_app:latest

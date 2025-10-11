@@ -70,7 +70,7 @@ def get_alarm(alarm_id: int):
     if "user_id" not in session:
         return redirect(url_for("index"))
     resp = requests.get(f"{ALARM_DIST_SYSTEM_URL}/alarms/{alarm_id}")
-    return jsonify(resp.json())
+    return jsonify(resp.json()), resp.status_code
 
 @app.get("/alarms/pending")
 def get_pending_alarms():
@@ -80,7 +80,7 @@ def get_pending_alarms():
     user_id = session["user_id"]
     resp = requests.get(f"{ALARM_DIST_SYSTEM_URL}/alarms?user_id={user_id}&status=pending")
 
-    return jsonify(resp.json())
+    return jsonify(resp.json()), resp.status_code
 
 @app.post("/alarms")
 def create_alarm():
@@ -97,7 +97,7 @@ def create_alarm():
         }
     )
 
-    return jsonify(resp.json())
+    return jsonify(resp.json()), resp.status_code
 
 @app.put("/alarms/<int:alarm_id>")
 def update_alarm(alarm_id: int):
@@ -112,11 +112,28 @@ def update_alarm(alarm_id: int):
             "message": data["message"]
         }
     )
-    return jsonify(resp.json())
+    return jsonify(resp.json()), resp.status_code
 
 @app.delete("/alarms/<int:alarm_id>")
 def delete_alarm(alarm_id: int):
     if "user_id" not in session:
         return redirect(url_for("index"))
     resp = requests.delete(f"{ALARM_DIST_SYSTEM_URL}/alarms/{alarm_id}")
-    return jsonify(resp.json())
+    return jsonify(resp.json()), resp.status_code
+
+@app.get("/notifications")
+def get_notifications():
+    if "user_id" not in session:
+        return redirect(url_for("index"))
+
+    user_id = session["user_id"]
+    resp = requests.get(f"{ALARM_DIST_SYSTEM_URL}/notifications?user_id={user_id}")
+
+    return jsonify(resp.json()), resp.status_code
+
+@app.delete("/notifications/<int:notif_id>")
+def delete_notification(notif_id: int):
+    if "user_id" not in session:
+        return redirect(url_for("index"))
+    resp = requests.delete(f"{ALARM_DIST_SYSTEM_URL}/notifications/{notif_id}")
+    return jsonify(resp.json()), resp.status_code

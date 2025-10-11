@@ -9,4 +9,3 @@ class NotificationDB(Base):
     user_id = Column(Integer, index=True)
     message = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    delivered = Column(Boolean, default=False)

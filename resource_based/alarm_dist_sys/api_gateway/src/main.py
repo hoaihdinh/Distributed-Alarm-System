@@ -1,10 +1,9 @@
 from fastapi import FastAPI, Request, Response, Query
-from fastapi.responses import StreamingResponse
 import httpx
 
 ALARM_URL = "http://alarm_manager:5001/alarms"
 USER_URL  = "http://user_manager:5002/users"
-NOTIFICATION_URL = "http://notification_manager:5003"
+NOTIFICATION_URL = "http://notification_manager:5003/notifications"
 
 app = FastAPI(title="API Gateway")
 
@@ -48,20 +47,20 @@ async def users_proxy(request: Request, path: str):
             media_type=response.headers.get("content-type")
         )
 
-@app.get("/notifications/stream")
-async def sse_proxy(request: Request, user_id: int = Query(...)):
-    async def event_generator():
-        async with httpx.AsyncClient(timeout=None) as client:
-            async with client.stream(
-                "GET",
-                f"{NOTIFICATION_URL}/notifications/stream",
-                params={"user_id": user_id},
-            ) as response:
-                async for chunk in response.aiter_bytes():
-                    yield chunk
+@app.api_route("/notifications/{path:path}", methods=["GET", "DELETE"])
+async def notificaion_proxy(request: Request, path: str):
+    target_url = f"{NOTIFICATION_URL}/{path}" if path != "" else NOTIFICATION_URL
+    async with httpx.AsyncClient(timeout=httpx.Timeout(60.0)) as client:
+        response = await client.request(
+            request.method,
+            target_url,
+            params=dict(request.query_params),
+            content=await request.body(),
+            headers=dict(request.headers),
+        )
 
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={"Access-Control-Allow-Origin": "*"},
-    )
+        return Response(
+            content=response.content,
+            status_code=response.status_code,
+            media_type=response.headers.get("content-type")
+        )
