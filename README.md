@@ -1,46 +1,50 @@
 # Distributed-Alarm-System
 
-## How to Run Resource Based Arch
+There are two different distributed system architectures used to develop similar apps.
+Microservice based architecture using gRPC to communicate between nodes
+and a Resource Based architecture using HTTP to communicate between nodes.
+
+The core required key functionalities provided in both apps are as follows:
+1) Add alarms 
+2) Update existing alarms
+3) Delete alarms
+4) List upcoming alarms
+5) Notify user based on alarms data
+
+Once the respective applications are up and running, users only need to interact with the provided frontend apps through http://localhost:8080 (microservices) or http://localhost:8081 (resource-based).
+
+Both applications allow users to sign up or sign in. 
+- **Disclaimer:** there is no password recovery option, so be sure to remember your credentials. Or you can make another account that does not have the same username.
+
+Once signed in, the dashboard consists of:
+* Section to add new alarms:
+    * Adding a new alarm is as simple as filling out the corresponding fields for a title/message and time, then clicking the add button.
+    * Adding alarms that are before the current time (e.g. adding an alarm for 5:00AM when it is 12:00PM) will be scheduled for the next day.
+    * Adding alarms that are at the current time (e.g. adding an alarm for 12:00PM when it is 12:00PM) will be scheduled for the next day.
+* Section listing scheduled alarms:
+    * This section lists all alarms scheduled and not notified to the user yet. Users are able to edit alarms and change the title/message and/or the trigger time. Users are also able to remove scheduled alarms before the respective trigger times.
+* Section listing notifications:
+    * This section is how the application notifies its users when an alarm is triggered. When an alarm is due, it is removed from the table (in the Scheduled Alarms section) and a corresponding notification appears in this section. Users are able to dismiss received notifications.
+
+## Resource Based Architecture
+### How to Run Resource Based Architecture
 ```
 cd resource_based
 docker compose up --build
 ```
+Once the example_frontend_app_RBA container is running, then visit http://localhost:8081.
 
-## Using the Example Fontend App
-
-Once the example_frontend_app container is running, then visit http://localhost:8080.
-
-If this is the first time you start this application, then there will be no accounts available.
-
-Get started by signing up with an account to then enter the Dashboard. 
-
-Disclaimer: there is no password recovery option, so be sure to remember your credentials. Or you can make another account that does not have the same username.
-
-From the Dashboard, you are able to add alarms for particular times along with a message. Once added, they will be scheduled, and then populate the Scheduled Alarms section.
-
-Under the Scheduled Alarms section, you can see all alarms that are scheduled. You are able to delete alarms or edit their execution time and message.
-
-Note that when you add alarms that are before the current time (e.g. adding an alarm for 5:00AM when it is 12:00PM), that alarm will be scheduled for the next day. The same principle applies when editing an alarm time to before the current time.
-
-Adding alarms for the current time (e.g. adding an alarm for 12:00PM when it is 12:00PM) it will be registered at that time and a notification will be sent within around 1-2 seconds.
-
-Under the Notifications section, this is where notifications are pushed when a Scheduled Alarm is due. 
-
-## How to Run Resource Based Arch with Locust
+### How to Run Resource Based Architecture with Locust
 ```
 cd resource_based/locust
 docker compose up --build
 ```
-
-## Using the Resource Based Arch with Locust
-
 Once the locust_app container is running, then visit http://localhost:8089.
 
 Input the corresponding values into the given fields and start the test.
 Details about the locust test/workers can be found in /resource_based/locust/src/locustfile.py
 
-This file will simulate a user, create and account and login. Once the registration is successful,
-it then runs fetch commands on alarms and notifications every 0.5s (similar to the fontend app).
+This file will simulate a user, create and account and login. Once the registration is successful, it then runs fetch commands on alarms and notifications every 0.5s (similar to the example_frontend_app_RBA).
 
 Then the workers will run corresponding tasks based on the weight given to them (@task(weight_val)).
 The current task distribution is as follows:
@@ -51,7 +55,7 @@ The current task distribution is as follows:
 
 The tasks are created based on what the user is able to do in the example frontend app.
 
-## Clean Up after running Resource Based Arch
+### Clean Up after running Resource Based Architecture
 ```
 // assuming still in the resource_based directory
 docker compose down
@@ -60,13 +64,28 @@ docker compose down
 // but you should be in the resource_based/locust directory
 ```
 
-## How to run Microservice Based Arch
+## Microservice Architecture
+### How to run Microservice Architecture
 ```
 cd microservice_based
 docker compose up --build
 ```
+Once the api_gateway_MS container is running, then visit http://localhost:8080.
 
-## Clean Up after running Microservice Based Arch
+### How to run the Microservice Architecture with Locust
+```
+// In a terminal
+cd microservice_based
+docker compose up --build
+
+// Open a new terminal
+cd microservice_based
+[locust command goes here]
+```
+Once the locust application is running visit [link goes here].
+
+
+### Clean Up after running Microservice Based Architecture
 ```
 // assuming still in the microservice_based directory
 docker compose down

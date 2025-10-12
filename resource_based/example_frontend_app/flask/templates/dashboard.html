@@ -106,9 +106,8 @@
     const scheduled = new Date(now);
     scheduled.setHours(hours, minutes, 0, 0);
 
-    // Check if the scheduled time is more than 1 minute in the past
-    const delta = now - scheduled;
-    if (delta > 60 * 1000) {
+    // If the scheduled time is in the past, move it to next day
+    if (scheduled <= now) {
       scheduled.setDate(scheduled.getDate() + 1);
     }
 
