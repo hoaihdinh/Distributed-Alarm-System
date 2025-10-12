@@ -53,24 +53,39 @@ class APIUser(HttpUser):
         self.notifications = []
         self.create_alarm()
         # Simulate frontend polling to get notifications and alarms
-        gevent.spawn(self.fetch_alarms)
-        gevent.spawn(self.fetch_notifications)
-
+        self.alarm_greenlet = gevent.spawn(self.fetch_alarms)
+        self.notif_greenlet = gevent.spawn(self.fetch_notifications)
+    
+    def on_stop(self):
+        """ Kills the continuous polling """
+        if hasattr(self, "alarm_greenlet"):
+            self.alarm_greenlet.kill()
+        if hasattr(self, "notif_greenlet"):
+            self.notif_greenlet.kill()
+    
     def fetch_alarms(self):
         """ Simulates the frontend app polling alarms every 0.5s """
         while True:
-            with self.client.get(f"/alarms?user_id={self.user_id}", catch_response=True) as response:
+            with self.client.get(
+                f"/alarms?user_id={self.user_id}",
+                name="GET alarms/",
+                catch_response=True
+            ) as response:
                 self.handle_response(response, "Get Alarm Request")
-            gevent.sleep(0.5)
+            gevent.sleep(1)
     
     def fetch_notifications(self):
         """ Simulates the frontend app polling notifications every 0.5s """
         while True:
-            with self.client.get(f"/notifications?user_id={self.user_id}", catch_response=True) as response:
+            with self.client.get(
+                f"/notifications?user_id={self.user_id}",
+                name="GET notifications/",
+                catch_response=True
+            ) as response:
                 if self.handle_response(response, "Get Notification Request"):
                     notifs = response.json()
                     self.notifications = [notif["id"] for notif in notifs]
-            gevent.sleep(0.5)
+            gevent.sleep(1)
 
     def generate_alarm_time(self):
         """ Generates a time within the next 5 minutes """
@@ -87,7 +102,7 @@ class APIUser(HttpUser):
             response.failure(f"{name} failed with status {response.status_code}: {response.text}")
             return False
 
-    @task(8)
+    @task(10)
     def create_alarm(self):
         """ Simulates the user creating an alarm """
         alarm_time = self.generate_alarm_time()
@@ -101,6 +116,7 @@ class APIUser(HttpUser):
                 "message": message,
                 "status": "pending"
             },
+            name="POST alarms/",
             catch_response=True
         ) as response:
             if self.handle_response(response, "Create Alarm Request"):
@@ -113,7 +129,11 @@ class APIUser(HttpUser):
         """ Simulates the user deleting an alarm """
         if self.alarms:
             alarm_id = random.choice(self.alarms)
-            with self.client.delete(f"/alarms/{alarm_id}", catch_response=True) as response:
+            with self.client.delete(
+                f"/alarms/{alarm_id}",
+                name="DELETE alarms/",
+                catch_response=True
+            ) as response:
                 if self.handle_response(response, "Delete Alarm Request"):
                     self.alarms.remove(alarm_id)
 
@@ -131,6 +151,7 @@ class APIUser(HttpUser):
                     "message": new_message,
                     "time": alarm_time
                 },
+                name="PUT alarms/",
                 catch_response=True
             ) as response:
                 self.handle_response(response, "Update Alarm Request")
@@ -140,7 +161,11 @@ class APIUser(HttpUser):
         """ Simulates the user removing notifications """
         if self.notifications:
             notification_id = random.choice(self.notifications)
-            with self.client.delete(f"/notifications/{notification_id}", catch_response=True) as response:
+            with self.client.delete(
+                f"/notifications/{notification_id}",
+                name="DELETE notifications/",
+                catch_response=True
+            ) as response:
                 if self.handle_response(response, "Delete Notification Request"):
                     self.notifications.remove(notification_id)
 

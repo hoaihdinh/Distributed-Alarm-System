@@ -90,7 +90,7 @@ def home(request: Request):
             if (notifDiv) notifDiv.remove();
           }}
 
-          setInterval(fetchAlarms, 3000);
+          setInterval(fetchAlarms, 1000);
           setInterval(fetchNotifications, 1000);
           fetchAlarms();
           fetchNotifications();
