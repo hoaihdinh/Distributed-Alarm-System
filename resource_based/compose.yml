@@ -2,7 +2,7 @@ services:
   api_gateway:
     build: ./alarm_dist_sys/api_gateway
     image: api_gateway:latest
-    container_name: api_gateway
+    container_name: api_gateway_RBA
     ports:
       - 5000:5000
     networks:
@@ -25,7 +25,7 @@ services:
   alarm_manager:
     build: ./alarm_dist_sys/alarm_manager
     image: alarm_manager:latest
-    container_name: alarm_manager
+    container_name: alarm_manager_RBA
     ports:
       - 5001:5001
     volumes:
@@ -40,7 +40,7 @@ services:
   user_manager:
     build: ./alarm_dist_sys/user_manager
     image: user_manager:latest
-    container_name: user_manager
+    container_name: user_manager_RBA
     ports:
       - 5002:5002
     volumes:
@@ -55,7 +55,7 @@ services:
   notification_manager:
     build: ./alarm_dist_sys/notification_manager
     image: notification_manager:latest
-    container_name: notification_manager
+    container_name: notification_manager_RBA
     ports:
       - 5003:5003
     volumes:
@@ -70,7 +70,7 @@ services:
   scheduler:
     build: ./alarm_dist_sys/scheduler
     image: scheduler:latest
-    container_name: scheduler
+    container_name: scheduler_RBA
     networks:
       - alarm_dist_sys
     healthcheck:
@@ -86,9 +86,9 @@ services:
   example_frontend_app:
     build: ./example_frontend_app
     image: example_frontend_app:latest
-    container_name: example_frontend_app
+    container_name: example_frontend_app_RBA
     ports:
-      - 8080:8080
+      - 8081:8081
     networks:
       - frontend
     depends_on:

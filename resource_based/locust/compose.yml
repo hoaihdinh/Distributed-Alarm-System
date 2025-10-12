@@ -2,7 +2,7 @@ services:
   api_gateway:
     build: ../alarm_dist_sys/api_gateway
     image: api_gateway:latest
-    container_name: api_gateway_locust
+    container_name: api_gateway_RBA_locust
     ports:
       - 5000:5000
     networks:
@@ -25,7 +25,7 @@ services:
   alarm_manager:
     build: ../alarm_dist_sys/alarm_manager
     image: alarm_manager:latest
-    container_name: alarm_manager_locust
+    container_name: alarm_manager_RBA_locust
     ports:
       - 5001:5001
     volumes:
@@ -40,7 +40,7 @@ services:
   user_manager:
     build: ../alarm_dist_sys/user_manager
     image: user_manager:latest
-    container_name: user_manager_locust
+    container_name: user_manager_RBA_locust
     ports:
       - 5002:5002
     volumes:
@@ -55,7 +55,7 @@ services:
   notification_manager:
     build: ../alarm_dist_sys/notification_manager
     image: notification_manager:latest
-    container_name: notification_manager_locust
+    container_name: notification_manager_RBA_locust
     ports:
       - 5003:5003
     volumes:
@@ -70,7 +70,7 @@ services:
   scheduler:
     build: ../alarm_dist_sys/scheduler
     image: scheduler:latest
-    container_name: scheduler_locust
+    container_name: scheduler_RBA_locust
     networks:
       - alarm_dist_sys
     healthcheck:
@@ -86,7 +86,7 @@ services:
   locust_app:
     build: .
     image: locust_app:latest
-    container_name: locust_app
+    container_name: locust_app_RBA
     ports:
       - 8089:8089
     networks:
