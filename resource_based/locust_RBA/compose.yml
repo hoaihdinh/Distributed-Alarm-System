@@ -6,8 +6,8 @@ services:
     ports:
       - 5000:5000
     networks:
-      - alarm_dist_sys
-      - frontend
+      - alarm_dist_sys_locust
+      - frontend_locust
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/"]
       interval: 5s
@@ -31,7 +31,7 @@ services:
     volumes:
       - ./data/alarm_manager:/app/data
     networks:
-      - alarm_dist_sys
+      - alarm_dist_sys_locust
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5001/"]
       interval: 5s
@@ -46,7 +46,7 @@ services:
     volumes:
       - ./data/user_manager:/app/data
     networks:
-      - alarm_dist_sys
+      - alarm_dist_sys_locust
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5002/"]
       interval: 5s
@@ -61,7 +61,7 @@ services:
     volumes:
       - ./data/notification_manager:/app/data
     networks:
-      - alarm_dist_sys
+      - alarm_dist_sys_locust
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5003/"]
       interval: 5s
@@ -72,7 +72,7 @@ services:
     image: scheduler:latest
     container_name: scheduler_RBA_locust
     networks:
-      - alarm_dist_sys
+      - alarm_dist_sys_locust
     healthcheck:
       test: ["CMD", "pgrep", "-f", "scheduler_main.py"]
       interval: 5s
@@ -90,11 +90,11 @@ services:
     ports:
       - 8089:8089
     networks:
-      - frontend
+      - frontend_locust
     depends_on:
       api_gateway:
         condition: service_healthy
 
 networks:
-  alarm_dist_sys:
-  frontend:
+  alarm_dist_sys_locust:
+  frontend_locust:
