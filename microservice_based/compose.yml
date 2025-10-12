@@ -1,16 +1,16 @@
 
 services:
   storage: # Storage
-    build: ./storage
+    build: ./alarm_dist_sys/storage
     container_name: storage_MS
     command: python storage.py
     ports:
       - "50051:50051"
     volumes:
-      - ./storage/saved_alarm.json:/app/saved_alarm.json
+      - ./alarm_dist_sys/storage/saved_alarm.json:/app/saved_alarm.json
 
   scheduler: # Scheduler
-    build: ./scheduler
+    build: ./alarm_dist_sys/scheduler
     container_name: scheduler_MS
     command: python scheduler.py
     depends_on:
@@ -20,7 +20,7 @@ services:
       - "50052:50052"
 
   notification: # Notification
-    build: ./notification
+    build: ./alarm_dist_sys/notification
     container_name: notification_MS
     command: python notification.py
     depends_on:
@@ -28,7 +28,7 @@ services:
       - storage
 
   api_gateway: # API Gateway / Web Dashboard
-    build: ./api_gateway
+    build: ./alarm_dist_sys/api_gateway
     container_name: api_gateway_MS
     command: python -m uvicorn api_gateway:app --host 0.0.0.0 --port 8080
     depends_on:
@@ -40,10 +40,10 @@ services:
       - "8080:8080"
 
   accounts:
-    build: ./accounts
+    build: ./alarm_dist_sys/accounts
     container_name: accounts_MS
     command: python accounts.py
     ports:
       - "50053:50053"
     volumes:
-      - ./accounts/saved_users.json:/app/saved_users.json
+      - ./alarm_dist_sys/accounts/saved_users.json:/app/saved_users.json
