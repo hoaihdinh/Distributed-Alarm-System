@@ -2,7 +2,7 @@
 # can visit http://localhost:8080/
 
 import grpc, time
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, Form, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from datetime import datetime, timedelta
 from itertools import count
@@ -30,7 +30,8 @@ account_stub = alarm_pb2_grpc.AccountStub(account_channel)
 notif_id_counter = count(1)
 notifications = []
 
-
+# alarm cache vars
+alarm_cache = {}
 
 
 # Dashboard
@@ -105,17 +106,19 @@ LOCAL_TZ = ZoneInfo("America/Chicago")
 @app.get("/alarms_html", response_class=HTMLResponse)
 def alarms_html(request: Request):
     user = getUser(request)
+    all_alarms=[]
     if not getattr(user, "username", ""):   # check for logged in user
-        return ""
+        return Response(status_code=204)
     try:
         all_alarms = list(storage_stub.ListAlarms(user))
     except grpc.RpcError as e:
-        if e.code() == grpc.StatusCode.INVALID_ARGUMENT:
-            return ""
-        else:
-            raise
+        if e.code() in ( grpc.StatusCode.INVALID_ARGUMENT, grpc.StatusCode.UNAVAILABLE):
+            return Response(status_code=204)
+
     # filter alarms for the logged-in user
     user_alarms = [a for a in all_alarms if a.user == user.username]
+    if not user_alarms:
+        return Response(status_code=204)
     rows = ""
     for alarm in user_alarms:
         local_dt = datetime.fromtimestamp(alarm.time.seconds, LOCAL_TZ)
@@ -136,6 +139,7 @@ def alarms_html(request: Request):
         </tr>
         """
     return rows
+
 
 
 #Alarm management 

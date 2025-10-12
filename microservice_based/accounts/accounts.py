@@ -74,7 +74,7 @@ class AccountServicer(alarm_pb2_grpc.AccountServicer):
 
 
 def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=50))
     alarm_pb2_grpc.add_AccountServicer_to_server(AccountServicer(), server)
     server.add_insecure_port('[::]:50053')
     server.start()

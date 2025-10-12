@@ -84,7 +84,7 @@ class StorageServicer(alarm_pb2_grpc.StorageServicer):
         return empty_pb2.Empty()
 
 def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=50))
     alarm_pb2_grpc.add_StorageServicer_to_server(StorageServicer(), server)
     server.add_insecure_port('[::]:50051')
     server.start()
