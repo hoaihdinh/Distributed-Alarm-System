@@ -6,21 +6,14 @@ from datetime import datetime, timedelta, timezone
 class APIUser(HttpUser):
     wait_time = between(1, 3)  # simulate user think time
 
-    def fetch_alarms(self):
-        while True:
-            with self.client.get(f"/alarms?user_id={self.user_id}", catch_response=True) as response:
-                self.handle_response(response, "Get Alarm Request")
-            gevent.sleep(0.5)
-    
-    def fetch_notifications(self):
-        while True:
-            with self.client.get(f"/notifications?user_id={self.user_id}", catch_response=True) as response:
-                if self.handle_response(response, "Get Notification Request"):
-                    notifs = response.json()
-                    self.notifications = [notif["id"] for notif in notifs]
-            gevent.sleep(0.5)
-
     def on_start(self):
+        """ 
+        Worker startup routine
+            Consists of simulating user logging in and keeps track
+            of notifications and alarms created along with creating
+            the first alarm. Also spawns gevents to simulate the app
+            polling for alarms and notifications for the user.
+        """
         self.user_id = None
 
         # Create a new user
@@ -63,12 +56,30 @@ class APIUser(HttpUser):
         gevent.spawn(self.fetch_alarms)
         gevent.spawn(self.fetch_notifications)
 
-    def random_alarm_time(self):
+    def fetch_alarms(self):
+        """ Simulates the frontend app polling alarms every 0.5s """
+        while True:
+            with self.client.get(f"/alarms?user_id={self.user_id}", catch_response=True) as response:
+                self.handle_response(response, "Get Alarm Request")
+            gevent.sleep(0.5)
+    
+    def fetch_notifications(self):
+        """ Simulates the frontend app polling notifications every 0.5s """
+        while True:
+            with self.client.get(f"/notifications?user_id={self.user_id}", catch_response=True) as response:
+                if self.handle_response(response, "Get Notification Request"):
+                    notifs = response.json()
+                    self.notifications = [notif["id"] for notif in notifs]
+            gevent.sleep(0.5)
+
+    def generate_alarm_time(self):
+        """ Generates a time within the next 5 minutes """
         now = datetime.now(timezone.utc)
-        delta = timedelta(minutes=random.randint(1, 5))
+        delta = timedelta(minutes=random.randint(1, 5)) # 
         return (now + delta).isoformat()
 
     def handle_response(self, response, name="Request"):
+        """ Wrapper function to handle responses and report failures """
         if response.status_code in (200, 201):
             response.success()
             return True
@@ -78,7 +89,8 @@ class APIUser(HttpUser):
 
     @task(8)
     def create_alarm(self):
-        alarm_time = self.random_alarm_time()
+        """ Simulates the user creating an alarm """
+        alarm_time = self.generate_alarm_time()
         message = f"Test Alarm for user {self.user_id}"
         
         with self.client.post(
@@ -98,6 +110,7 @@ class APIUser(HttpUser):
 
     @task(5)
     def delete_specific_alarm(self):
+        """ Simulates the user deleting an alarm """
         if self.alarms:
             alarm_id = random.choice(self.alarms)
             with self.client.delete(f"/alarms/{alarm_id}", catch_response=True) as response:
@@ -106,10 +119,11 @@ class APIUser(HttpUser):
 
     @task(5)
     def update_alarm(self):
+        """ Simulates the user updating an alarm """
         if self.alarms:
             alarm_id = random.choice(self.alarms)
             new_message = f"Updated Alarm for user {self.user_id} [{random.randint(1, 100000)}]"
-            alarm_time = self.random_alarm_time()
+            alarm_time = self.generate_alarm_time()
 
             with self.client.put(
                 f"/alarms/{alarm_id}",
@@ -123,6 +137,7 @@ class APIUser(HttpUser):
                 
     @task(5)
     def delete_notification(self):
+        """ Simulates the user removing notifications """
         if self.notifications:
             notification_id = random.choice(self.notifications)
             with self.client.delete(f"/notifications/{notification_id}", catch_response=True) as response:

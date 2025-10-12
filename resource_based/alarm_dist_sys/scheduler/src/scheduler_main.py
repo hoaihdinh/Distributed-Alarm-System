@@ -8,8 +8,8 @@ NOTIFY_URL = "http://notification_manager:5003/notifications"
 session: aiohttp.ClientSession | None = None
 POLL_INTERVAL = .5  # 500ms
 
-# Processes alarms and updates their status
 async def process_alarm(alarm: dict):
+    """ Processes alarms and updates their status """
     try:
         alarm_time = datetime.fromisoformat(alarm["time"])
         if alarm_time.tzinfo is None:
@@ -33,9 +33,8 @@ async def process_alarm(alarm: dict):
     except Exception as e:
         print(f"[Scheduler] Error processing alarm {alarm.get('id')}: {e}")
 
-
-# Fetches and handles all pending alarms
 async def poll_pending_alarms():
+    """ Fetches and handles all pending alarms """
     try:
         async with session.get(ALARM_URL, params={"status": "pending"}) as response:
             if response.status != 200:
