@@ -2,7 +2,7 @@
 services:
   storage: # Storage
     build: ./storage
-    container_name: storage
+    container_name: storage_MS
     command: python storage.py
     ports:
       - "50051:50051"
@@ -11,7 +11,7 @@ services:
 
   scheduler: # Scheduler
     build: ./scheduler
-    container_name: scheduler
+    container_name: scheduler_MS
     command: python scheduler.py
     depends_on:
       - storage
@@ -21,7 +21,7 @@ services:
 
   notification: # Notification
     build: ./notification
-    container_name: notification
+    container_name: notification_MS
     command: python notification.py
     depends_on:
       - scheduler
@@ -29,7 +29,7 @@ services:
 
   api_gateway: # API Gateway / Web Dashboard
     build: ./api_gateway
-    container_name: api_gateway
+    container_name: api_gateway_MS
     command: python -m uvicorn api_gateway:app --host 0.0.0.0 --port 8080
     depends_on:
       - storage
@@ -41,21 +41,9 @@ services:
 
   accounts:
     build: ./accounts
-    container_name: accounts
+    container_name: accounts_MS
     command: python accounts.py
     ports:
       - "50053:50053"
     volumes:
       - ./accounts/saved_users.json:/app/saved_users.json
-
-  user:
-    build: ../user
-    container_name: user
-    ports:
-      - 8080:8080
-    depends_on:
-      - storage
-      - scheduler
-      - notification
-      - api_gateway
-      - accounts
