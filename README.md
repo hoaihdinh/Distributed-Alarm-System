@@ -26,6 +26,33 @@ Once signed in, the dashboard consists of:
 * Section listing notifications:
     * This section is how the application notifies its users when an alarm is triggered. When an alarm is due, it is removed from the table (in the Scheduled Alarms section) and a corresponding notification appears in this section. Users are able to dismiss received notifications.
 
+## Microservice Architecture
+### How to run Microservice Architecture
+```
+cd microservice_based
+docker compose up --build
+```
+Once the api_gateway_MS container is running, then visit http://localhost:8080.
+
+### How to run the Microservice Architecture with Locust
+```
+// In a terminal
+cd microservice_based
+docker compose up --build
+
+// Open a new terminal
+cd microservice_based
+[locust command goes here]
+```
+Once the locust application is running visit [link goes here].
+
+
+### Clean Up after running Microservice Based Architecture
+```
+// assuming still in the microservice_based directory
+docker compose down
+```
+
 ## Resource Based Architecture
 ### How to Run Resource Based Architecture
 ```
@@ -62,31 +89,4 @@ docker compose down
 
 // if the locust file was ran, the same command can be run
 // but you should be in the resource_based/locust directory
-```
-
-## Microservice Architecture
-### How to run Microservice Architecture
-```
-cd microservice_based
-docker compose up --build
-```
-Once the api_gateway_MS container is running, then visit http://localhost:8080.
-
-### How to run the Microservice Architecture with Locust
-```
-// In a terminal
-cd microservice_based
-docker compose up --build
-
-// Open a new terminal
-cd microservice_based
-[locust command goes here]
-```
-Once the locust application is running visit [link goes here].
-
-
-### Clean Up after running Microservice Based Architecture
-```
-// assuming still in the microservice_based directory
-docker compose down
 ```
