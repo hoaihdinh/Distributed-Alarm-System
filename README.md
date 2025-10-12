@@ -42,7 +42,6 @@ Once the api_gateway_MS container is running, then visit http://localhost:8080.
 
 ### How to run the Microservice Architecture with Locust
 ```
-// In a terminal
 cd microservice_based/locust_MS/
 docker compose up --build
 ```
@@ -51,24 +50,23 @@ Once the locust_app_MS container is running visit http://localhost:8089.
 
 ### Clean Up after running Microservice Based Architecture
 ```
-// assuming still in the microservice_based directory
 docker compose down
-
-// if the locust file was ran, the same command can be run
-// but you should be in the resource_based/locust directory
 ```
+This command works for both the general Microservices and the Locust testing
+* For the general Microservice docker compose, be sure to be in the `microservice_based/` directory
+* For the Locust testing, be sure to be in the `microservice_based/locust_MS/` directory
 
 ## Resource Based Architecture
 ### How to Run Resource Based Architecture
 ```
-cd resource_based
+cd resource_based/
 docker compose up --build
 ```
 Once the example_frontend_app_RBA container is running, then visit http://localhost:8081.
 
 ### How to Run Resource Based Architecture with Locust
 ```
-cd resource_based/locust_RBA
+cd resource_based/locust_RBA/
 docker compose up --build
 ```
 Once the locust_app_RBA container is running, then visit http://localhost:8089.
@@ -76,9 +74,8 @@ Once the locust_app_RBA container is running, then visit http://localhost:8089.
 
 ### Clean Up after running Resource Based Architecture
 ```
-// assuming still in the resource_based directory
 docker compose down
-
-// if the locust file was ran, the same command can be run
-// but you should be in the resource_based/locust directory
 ```
+This command works for both the general Resource Based and the Locust testing
+* For the general Resource Based docker compose, be sure to be in the `resource_based/` directory
+* For the Locust testing, be sure to be in the `resource_based/locust_RBA/` directory
