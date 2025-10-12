@@ -63,8 +63,6 @@ class APIUser(HttpUser):
         gevent.spawn(self.fetch_alarms)
         gevent.spawn(self.fetch_notifications)
 
-
-
     def random_alarm_time(self):
         now = datetime.now(timezone.utc)
         delta = timedelta(minutes=random.randint(1, 5))
