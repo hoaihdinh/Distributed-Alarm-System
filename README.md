@@ -42,7 +42,7 @@ Details about the locust test/workers can be found in /resource_based/locust/src
 This file will simulate a user, create and account and login. Once the registration is successful,
 it then runs fetch commands on alarms and notifications every 0.5s (similar to the fontend app).
 
-Then will run corresponding tasks based on the weight given to them (@task(weight_val)).
+Then the workers will run corresponding tasks based on the weight given to them (@task(weight_val)).
 The current task distribution is as follows:
 * 34.8% createAlarm
 * 21.7% deleteNotification
