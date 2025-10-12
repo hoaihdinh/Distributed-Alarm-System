@@ -1,0 +1,65 @@
+syntax = "proto3";
+package alarm;
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+
+message Alarm {
+    int32 id = 1;
+    string user = 2;
+    string title = 3;
+    google.protobuf.Timestamp time = 4;
+}
+message AlarmId{
+    int32 id = 1;
+}
+
+message User{
+    string username = 1;
+    string password = 2;
+}
+message Status{
+    int32 success = 1;
+    string token = 2;
+}
+message Username {
+    string username = 1;
+}
+
+// Storage service/node
+// interacts with memory where alarms are stored
+service Storage {
+  rpc AddAlarm(Alarm) returns (google.protobuf.Empty);          // saves alarm to storage
+  rpc GetAlarm(AlarmId) returns (Alarm);                        // returns alarm
+  rpc ListAlarms(google.protobuf.Empty) returns (stream Alarm); // lists all alarms
+  rpc DeleteAlarm(AlarmId) returns (google.protobuf.Empty);     // deletes alarm with id
+}
+
+// Scheduler service/node
+// handles alarm triggers and requests
+service Scheduler {
+    rpc ScheduleAlarm(Alarm) returns (google.protobuf.Empty);   // calls Storage node to SaveAlarm
+    rpc FwdDueAlarm(google.protobuf.Empty) returns (Alarm);     // sends triggered Alarm to Notification
+}
+
+// Notification service/node
+service Notification {
+    rpc SendNotification(Alarm) returns (google.protobuf.Empty);    // prints notif to terminal
+}
+
+// Account Management service/node
+service Account {
+    rpc AddUser(User) returns (Status);         // adds a user to saved_users file
+    rpc VerifyUser(User) returns (Status);      // checks saved_users file for user
+    rpc GetUser(google.protobuf.Empty) returns (Username);  // returns current user
+}
+
+// aside: have the following versions
+// Name: grpcio Version: 1.74.0
+// Name: grpcio-tools Version: 1.74.0
+// Name: protobuf Version: 6.32.0
+// checked using pip show grpcio grpcio-tools protobuf
+
+
+// aside 2: generated proto files using in arch_2
+// python -m grpc_tools.protoc  -I.   --python_out=./node2  --grpc_python_out=./node2   alarm.proto

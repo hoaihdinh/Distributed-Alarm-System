@@ -1,0 +1,61 @@
+
+services:
+  storage: # Storage
+    build: ./storage
+    container_name: storage
+    command: python storage.py
+    ports:
+      - "50051:50051"
+    volumes:
+      - ./storage/saved_alarm.json:/app/saved_alarm.json
+
+  scheduler: # Scheduler
+    build: ./scheduler
+    container_name: scheduler
+    command: python scheduler.py
+    depends_on:
+      - storage
+      - accounts
+    ports:
+      - "50052:50052"
+
+  notification: # Notification
+    build: ./notification
+    container_name: notification
+    command: python notification.py
+    depends_on:
+      - scheduler
+      - storage
+
+  api_gateway: # API Gateway / Web Dashboard
+    build: ./api_gateway
+    container_name: api_gateway
+    command: python -m uvicorn api_gateway:app --host 0.0.0.0 --port 8080
+    depends_on:
+      - storage
+      - scheduler
+      - notification
+      - accounts
+    ports:
+      - "8080:8080"
+
+  accounts:
+    build: ./accounts
+    container_name: accounts
+    command: python accounts.py
+    ports:
+      - "50053:50053"
+    volumes:
+      - ./accounts/saved_users.json:/app/saved_users.json
+
+  user:
+    build: ../user
+    container_name: user
+    ports:
+      - 8080:8080
+    depends_on:
+      - storage
+      - scheduler
+      - notification
+      - api_gateway
+      - accounts

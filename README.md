@@ -60,14 +60,14 @@ docker compose down
 // but you should be in the resource_based/locust directory
 ```
 
-## How to run Arch2
+## How to run Microservice Based Arch
 ```
-cd arch_2
+cd microservice_based
 docker compose up --build
 ```
 
-## Clean Up after running Arch2
+## Clean Up after running Microservice Based Arch
 ```
-// assuming still in the arch_2 directory
+// assuming still in the microservice_based directory
 docker compose down
 ```
