@@ -4,6 +4,7 @@ There are two different distributed system architectures used to develop similar
 Microservice based architecture using gRPC to communicate between nodes
 and a Resource Based architecture using HTTP to communicate between nodes.
 
+## Frontend Application Overview
 The core required key functionalities provided in both apps are as follows:
 1) Add alarms 
 2) Update existing alarms
@@ -26,10 +27,15 @@ Once signed in, the dashboard consists of:
 * Section listing notifications:
     * This section is how the application notifies its users when an alarm is triggered. When an alarm is due, it is removed from the table (in the Scheduled Alarms section) and a corresponding notification appears in this section. Users are able to dismiss received notifications.
 
+## Locust Testing Overview
+This README also contains instructions to run the corresponding applications with Locust. Note that only one of the architectures can be running Locust at a time. When the Locust container is up and running, visit http://localhost:8089 (for both) to get started.
+
+Here you are able to set values such as maximum concurrent users and how many additional users per second. The host URL should already be populated if you used the `docker compose` commands. From there hit the START button to observe statistics.
+
 ## Microservice Architecture
 ### How to run Microservice Architecture
 ```
-cd microservice_based
+cd microservice_based/
 docker compose up --build
 ```
 Once the api_gateway_MS container is running, then visit http://localhost:8080.
@@ -37,20 +43,19 @@ Once the api_gateway_MS container is running, then visit http://localhost:8080.
 ### How to run the Microservice Architecture with Locust
 ```
 // In a terminal
-cd microservice_based
+cd microservice_based/locust_MS/
 docker compose up --build
-
-// Open a new terminal
-cd microservice_based
-[locust command goes here]
 ```
-Once the locust application is running visit [link goes here].
-
+Once the locust_app_MS container is running visit http://localhost:8089.
+* **Disclaimer:** You can only run Locust with one of the architectures at a time. Running both at the same time is not possible, so be sure to stop the container of the Resource Based Architecture one if you wish to run this.
 
 ### Clean Up after running Microservice Based Architecture
 ```
 // assuming still in the microservice_based directory
 docker compose down
+
+// if the locust file was ran, the same command can be run
+// but you should be in the resource_based/locust directory
 ```
 
 ## Resource Based Architecture
@@ -63,24 +68,11 @@ Once the example_frontend_app_RBA container is running, then visit http://localh
 
 ### How to Run Resource Based Architecture with Locust
 ```
-cd resource_based/locust
+cd resource_based/locust_RBA
 docker compose up --build
 ```
-Once the locust_app container is running, then visit http://localhost:8089.
-
-Input the corresponding values into the given fields and start the test.
-Details about the locust test/workers can be found in /resource_based/locust/src/locustfile.py
-
-This file will simulate a user, create and account and login. Once the registration is successful, it then runs fetch commands on alarms and notifications every 0.5s (similar to the example_frontend_app_RBA).
-
-Then the workers will run corresponding tasks based on the weight given to them (@task(weight_val)).
-The current task distribution is as follows:
-* 34.8% createAlarm
-* 21.7% deleteNotification
-* 21.7% deleteSpecificAlarm
-* 21.7% updateAlarm
-
-The tasks are created based on what the user is able to do in the example frontend app.
+Once the locust_app_RBA container is running, then visit http://localhost:8089.
+* **Disclaimer:** You can only run Locust with one of the architectures at a time. Running both at the same time is not possible, so be sure to stop the container of the Microservices Architecture one if you wish to run this.
 
 ### Clean Up after running Resource Based Architecture
 ```
