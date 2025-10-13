@@ -2,9 +2,9 @@
 
 These are reports generated using Locust. 
 
-Evaluations for microservices architecture are under the `evaluation_reports/microservices/` director.
+Evaluations for microservices architecture are under the `evaluation_reports/microservices/` directory.
 
-Evaluations for resource-based architecture are under the `evaluation_reports/resource_based/` director.
+Evaluations for resource-based architecture are under the `evaluation_reports/resource_based/` directory.
 
 Files are named using this scheme:
 ```
