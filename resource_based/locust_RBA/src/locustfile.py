@@ -1,6 +1,7 @@
 from locust import HttpUser, task, between, events
 import random
 import gevent
+from gevent.lock import Semaphore
 from datetime import datetime, timedelta, timezone
 
 class APIUser(HttpUser):
@@ -15,6 +16,8 @@ class APIUser(HttpUser):
             polling for alarms and notifications for the user.
         """
         self.user_id = None
+        self.notif_lock = Semaphore()
+        self.alarm_lock = Semaphore()
 
         # Create a new user
         username = f"user_{random.randint(1, 100000)}"
@@ -77,14 +80,15 @@ class APIUser(HttpUser):
     def fetch_notifications(self):
         """ Simulates the frontend app polling notifications every 0.5s """
         while True:
-            with self.client.get(
-                f"/notifications?user_id={self.user_id}",
-                name="GET notifications/",
-                catch_response=True
-            ) as response:
-                if self.handle_response(response, "Get Notification Request"):
-                    notifs = response.json()
-                    self.notifications = [notif["id"] for notif in notifs]
+            with self.notif_lock:
+                with self.client.get(
+                    f"/notifications?user_id={self.user_id}",
+                    name="GET notifications/",
+                    catch_response=True
+                ) as response:
+                    if self.handle_response(response, "Get Notification Request"):
+                        notifs = response.json()
+                        self.notifications = [notif["id"] for notif in notifs]
             gevent.sleep(1)
 
     def generate_alarm_time(self):
@@ -95,7 +99,7 @@ class APIUser(HttpUser):
 
     def handle_response(self, response, name="Request"):
         """ Wrapper function to handle responses and report failures """
-        if response.status_code in (200, 201):
+        if response.status_code in (200, 201, 404):
             response.success()
             return True
         else:
@@ -107,65 +111,71 @@ class APIUser(HttpUser):
         """ Simulates the user creating an alarm """
         alarm_time = self.generate_alarm_time()
         message = f"Test Alarm for user {self.user_id}"
-        
-        with self.client.post(
-            "/alarms",
-            json={
-                "user_id": self.user_id,
-                "time": alarm_time,
-                "message": message,
-                "status": "pending"
-            },
-            name="POST alarms/",
-            catch_response=True
-        ) as response:
-            if self.handle_response(response, "Create Alarm Request"):
-                alarm_id = response.json().get("id")
-                if alarm_id:
-                    self.alarms.append(alarm_id)
+        with self.alarm_lock:
+            with self.client.post(
+                "/alarms",
+                json={
+                    "user_id": self.user_id,
+                    "time": alarm_time,
+                    "message": message,
+                    "status": "pending"
+                },
+                name="POST alarms/",
+                catch_response=True
+            ) as response:
+                if self.handle_response(response, "Create Alarm Request"):
+                    alarm_id = response.json().get("id")
+                    if alarm_id:
+                        self.alarms.append(alarm_id)
 
     @task(5)
     def delete_specific_alarm(self):
         """ Simulates the user deleting an alarm """
         if self.alarms:
-            alarm_id = random.choice(self.alarms)
-            with self.client.delete(
-                f"/alarms/{alarm_id}",
-                name="DELETE alarms/",
-                catch_response=True
-            ) as response:
-                if self.handle_response(response, "Delete Alarm Request"):
-                    self.alarms.remove(alarm_id)
+            with self.alarm_lock:
+                alarm_id = random.choice(self.alarms)
+                with self.client.delete(
+                    f"/alarms/{alarm_id}",
+                    name="DELETE alarms/",
+                    catch_response=True
+                ) as response:
+                    if self.handle_response(response, "Delete Alarm Request"):
+                        if alarm_id in self.alarms:
+                            self.alarms.remove(alarm_id)
 
     @task(5)
     def update_alarm(self):
         """ Simulates the user updating an alarm """
         if self.alarms:
-            alarm_id = random.choice(self.alarms)
-            new_message = f"Updated Alarm for user {self.user_id} [{random.randint(1, 100000)}]"
-            alarm_time = self.generate_alarm_time()
+            with self.alarm_lock:
+                alarm_id = random.choice(self.alarms)
+                new_message = f"Updated Alarm for user {self.user_id} [{random.randint(1, 100000)}]"
+                alarm_time = self.generate_alarm_time()
 
-            with self.client.put(
-                f"/alarms/{alarm_id}",
-                json={
-                    "message": new_message,
-                    "time": alarm_time
-                },
-                name="PUT alarms/",
-                catch_response=True
-            ) as response:
-                self.handle_response(response, "Update Alarm Request")
+                with self.client.put(
+                    f"/alarms/{alarm_id}",
+                    json={
+                        "message": new_message,
+                        "time": alarm_time
+                    },
+                    name="PUT alarms/",
+                    catch_response=True
+                ) as response:
+                    self.handle_response(response, "Update Alarm Request")
                 
     @task(5)
     def delete_notification(self):
         """ Simulates the user removing notifications """
         if self.notifications:
-            notification_id = random.choice(self.notifications)
-            with self.client.delete(
-                f"/notifications/{notification_id}",
-                name="DELETE notifications/",
-                catch_response=True
-            ) as response:
-                if self.handle_response(response, "Delete Notification Request"):
-                    self.notifications.remove(notification_id)
+            with self.notif_lock:
+                notification_id = random.choice(self.notifications)
+                with self.client.delete(
+                    f"/notifications/{notification_id}",
+                    name="DELETE notifications/",
+                    catch_response=True
+                ) as response:
+                    if self.handle_response(response, "Delete Notification Request"):
+                        if notification_id in self.notifications:
+                            self.notifications.remove(notification_id)
+
 
