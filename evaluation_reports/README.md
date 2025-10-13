@@ -6,6 +6,7 @@ Each Locust worker will register and/or login, then every 1-3 seconds will prefo
 - delete a notification (20%)
 - delete an alarm (20%)
 - update alarm details (20%)
+
 Additionally, as the Locust worker is running, they will periodically request for alarms and notifications every second.
 
 The following are device details used to run these tests:
