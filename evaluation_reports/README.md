@@ -3,9 +3,9 @@
 These are reports generated using Locust and the corresponding compose.yml files as described in base directory's README.md.
 
 The following are device details used to run these tests:
-•  12th Gen Intel(R) Core(TM) i7-12650H
-•  32GB DDR5-4800 RAM
-•  2TB SSD
+- 12th Gen Intel(R) Core(TM) i7-12650H
+- 32GB DDR5-4800 RAM
+- 2TB SSD
 
 Evaluations for microservices architecture are under the `evaluation_reports/microservices/` directory.
 
