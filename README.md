@@ -28,9 +28,9 @@ Once signed in, the dashboard consists of:
     * This section is how the application notifies its users when an alarm is triggered. When an alarm is due, it is removed from the table (in the Scheduled Alarms section) and a corresponding notification appears in this section. Users are able to dismiss received notifications.
 
 ## Locust Testing Overview
-This README also contains instructions to run the corresponding applications with Locust. Note that only one of the architectures can be running Locust at a time. When the Locust container is up and running, visit http://localhost:8089 (for both) to get started.
+This README also contains instructions to run the corresponding applications with Locust. Note that only one of the architectures can be running Locust at a time. In addition, if you are running an architecture without Locust, you cannot run the same architecture with Locust (e.g. it is not possible to run Resource Based Architecture with the Example Fontend App and Resource Based Architecture with Locust). You are able to stop containers and run other containers without needing to use `docker compose down`.
 
-Here you are able to set values such as maximum concurrent users and how many additional users per second. The host URL should already be populated if you used the `docker compose` commands. From there hit the START button to observe statistics.
+When the Locust container is up and running, visit http://localhost:8089 (for both) to get started. Here you are able to set values such as maximum concurrent users and how many additional users per second. The host URL should already be populated if you used the `docker compose` commands. From there hit the START button to observe statistics.
 
 ## Microservice Architecture
 ### How to run Microservice Architecture
@@ -46,7 +46,8 @@ cd microservice_based/locust_MS/
 docker compose up --build
 ```
 Once the locust_app_MS container is running visit http://localhost:8089.
-* **Disclaimer:** You can only run Locust with one of the architectures at a time. Running both at the same time is not possible, so be sure to stop the container of the Resource Based Architecture one if you wish to run this.
+* **Disclaimer:** You can only run Locust with one of the architectures at a time, and you cannot run this with the normal Microservice Architecture. Running both at the same time is not possible, so be sure to stop the corresponding container if you wish to run this one.
+
 
 ### Clean Up after running Microservice Based Architecture
 ```
@@ -70,7 +71,7 @@ cd resource_based/locust_RBA/
 docker compose up --build
 ```
 Once the locust_app_RBA container is running, then visit http://localhost:8089.
-* **Disclaimer:** You can only run Locust with one of the architectures at a time. Running both at the same time is not possible, so be sure to stop the container of the Microservices Architecture one if you wish to run this.
+* **Disclaimer:** You can only run Locust with one of the architectures at a time, and you cannot run this with the normal Resource Based Architecture. Running both at the same time is not possible, so be sure to stop the corresponding container if you wish to run this one.
 
 ### Clean Up after running Resource Based Architecture
 ```
